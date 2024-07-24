@@ -1,0 +1,20 @@
+{
+    "keep": {
+        "days": true,
+        "amount": 14
+    },
+    "auditLog": "C:\\Users\\rony\\Desktop\\Resume\\doctor-portal-backend\\logs\\successes\\.552598ed3c4cb0ec39f42b46b5722b5417aa35c0-audit.json",
+    "files": [
+        {
+            "date": 1721837683505,
+            "name": "C:\\Users\\rony\\Desktop\\Resume\\doctor-portal-backend\\logs\\successes\\2024-24-07-22-success.log",
+            "hash": "efa69df62feb2196855ffce1e1239bc0ff55c3ccd5e23eb6c9dec5e01986ff2d"
+        },
+        {
+            "date": 1721842798572,
+            "name": "C:\\Users\\rony\\Desktop\\Resume\\doctor-portal-backend\\logs\\successes\\2024-24-07-23-success.log",
+            "hash": "3eb96ae5e405cf63f824d96d788492881f7b480dcbd4a5dec953bcaad2a5b7df"
+        }
+    ],
+    "hashType": "sha256"
+}

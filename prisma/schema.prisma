@@ -1,0 +1,220 @@
+// This is your Prisma schema file,
+// learn more about it in the docs: https://pris.ly/d/prisma-schema
+
+// Looking for ways to speed up your queries, or scale easily with your serverless or edge functions?
+// Try Prisma Accelerate: https://pris.ly/cli/accelerate-init
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+model Permission {
+  id   Int    @id @default(autoincrement())
+  name String @unique
+
+  created_at       DateTime         @default(now())
+  updated_at       DateTime         @default(now())
+  user_permissions UserPermission[]
+
+  @@map("permissions")
+}
+
+model UserPermission {
+  permission    Permission @relation(fields: [permission_id], references: [id])
+  permission_id Int
+  user          User       @relation(fields: [user_id], references: [id])
+  user_id       String
+
+  created_at DateTime @default(now())
+  updated_at DateTime @default(now())
+
+  @@id([permission_id, user_id])
+  @@map("user_permissions")
+}
+
+model User {
+  id                         String           @unique
+  email                      String           @unique
+  phone_number               String           @unique
+  password                   String
+  role                       String
+  is_password_reset_required Boolean          @default(true)
+  status                     String
+  is_deleted                 Boolean          @default(false)
+  user_permissions           UserPermission[]
+  patient                    Patient?
+  doctor                     Doctor?
+  admin                      Admin?
+  profile                    Profile?
+
+  created_at DateTime @default(now())
+  updated_at DateTime @default(now())
+
+  @@id([id, role])
+  @@map("users")
+}
+
+model Specialization {
+  id          Int       @id @default(autoincrement())
+  name        String    @unique
+  description String
+  doctors     Doctor[]
+  services    Service[]
+
+  created_at DateTime @default(now())
+  updated_at DateTime @default(now())
+
+  @@map("specializations")
+}
+
+model Doctor {
+  id                String         @id
+  doctor            User           @relation(fields: [user_id], references: [id])
+  user_id           String         @unique
+  specialization    Specialization @relation(fields: [specialization_id], references: [id])
+  specialization_id Int
+  qualification     String
+
+  created_at            DateTime             @default(now())
+  updated_at            DateTime             @default(now())
+  doctor_availabilities DoctorAvailability[]
+
+  @@map("doctors")
+}
+
+model Patient {
+  id      String @id
+  patient User   @relation(fields: [user_id], references: [id])
+  user_id String @unique
+
+  created_at  DateTime     @default(now())
+  updated_at  DateTime     @default(now())
+  apointments Apointment[]
+
+  @@map("patients")
+}
+
+model Admin {
+  id      Int    @id @default(autoincrement())
+  user    User   @relation(fields: [user_id], references: [id])
+  user_id String @unique
+
+  created_at DateTime @default(now())
+  updated_at DateTime @default(now())
+
+  @@map("admins")
+}
+
+model Profile {
+  id                String @id
+  user              User   @relation(fields: [user_id], references: [id])
+  user_id           String @unique
+  full_name         String
+  profile_picture   String
+  address           String
+  date_of_birth     String
+  joining_date      String
+  gender            String
+  medical_history   String
+  emergency_contact String
+  profile_status    String
+
+  created_at DateTime @default(now())
+  updated_at DateTime @default(now())
+
+  @@map("profiles")
+}
+
+model Service {
+  id                Int                @id @default(autoincrement())
+  name              String             @unique
+  description       String
+  specialization    Specialization     @relation(fields: [specialization_id], references: [id])
+  specialization_id Int
+  available_sevices AvailableService[]
+
+  created_at DateTime @default(now())
+  updated_at DateTime @default(now())
+
+  @@map("services")
+}
+
+model TimeSlot {
+  id                    Int                  @id @default(autoincrement())
+  start_time            String
+  end_time              String
+  doctor_availabilities DoctorAvailability[]
+  available_sevice      AvailableService[]
+
+  created_at DateTime @default(now())
+  updated_at DateTime @default(now())
+
+  @@map("time_slots")
+}
+
+model AvailableService {
+  id                     Int                @id @default(autoincrement())
+  doctor_availability    DoctorAvailability @relation(fields: [doctor_availability_id], references: [id])
+  doctor_availability_id String             @unique
+  services               Service            @relation(fields: [servie_id], references: [id])
+  servie_id              Int
+  slots                  TimeSlot           @relation(fields: [slot_id], references: [id])
+  slot_id                Int
+  slot_date              DateTime
+  available_seats        Int
+  is_booked              Boolean            @default(false)
+
+  created_at DateTime @default(now())
+  updated_at DateTime @default(now())
+
+  @@map("available_services")
+}
+
+model DoctorAvailability {
+  id                    String   @id
+  doctor                Doctor   @relation(fields: [doctor_id], references: [id])
+  doctor_id             String
+  doctor_availabilities TimeSlot @relation(fields: [slot_id], references: [id])
+  slot_id               Int
+  availablity_date      DateTime @unique
+
+  created_at       DateTime          @default(now())
+  updated_at       DateTime          @default(now())
+  available_sevice AvailableService?
+
+  @@map("doctor_availabilities")
+}
+
+model Apointment {
+  id                   String   @id
+  patients             Patient  @relation(fields: [patient_id], references: [id])
+  patient_id           String
+  available_service_id String
+  appointment_date     DateTime
+  status               String
+
+  created_at DateTime  @default(now())
+  updated_at DateTime  @default(now())
+  Payment    Payment[]
+
+  @@map("appointments")
+}
+
+model Payment {
+  id             String     @id
+  apointment     Apointment @relation(fields: [appointment_id], references: [id])
+  appointment_id String
+  amount         Int
+  payment_date   String
+  payment_status String
+
+  created_at DateTime @default(now())
+  updated_at DateTime @default(now())
+
+  @@map("payments")
+}
