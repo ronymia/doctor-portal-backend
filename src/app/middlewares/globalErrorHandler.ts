@@ -1,24 +1,24 @@
-import { ErrorRequestHandler } from "express";
-import { errorLogger } from "../../shared/logger";
-import { TErrorSources } from "../../interfaces/error";
-import AppError from "../../errors/AppError";
-import { ZodError } from "zod";
-import config from "../../config";
-import handleZodError from "../../errors/handleZodError";
+import { ErrorRequestHandler } from 'express';
+import { errorLogger } from '../../shared/logger';
+import { TErrorSources } from '../../interfaces/error';
+import AppError from '../../errors/AppError';
+import { ZodError } from 'zod';
+import config from '../../config';
+import handleZodError from '../../errors/handleZodError';
 
 const globalErrorHandler: ErrorRequestHandler = (err, req, res, next) => {
   //Debug
-  config.node_env === "development"
+  config.node_env === 'development'
     ? console.log(`🐱‍🏍 globalErrorHandler ~~`, err)
     : errorLogger.error(`🐱‍🏍 globalErrorHandler ~~`, err);
 
   //SETTING DEFAULT VALUES
   let statusCode = 500;
-  let message = "Something went wrong!";
+  let message = 'Something went wrong!';
   let errorSources: TErrorSources = [
     {
-      path: "",
-      message: "Something went wrong",
+      path: '',
+      message: 'Something went wrong',
     },
   ];
 
@@ -42,7 +42,7 @@ const globalErrorHandler: ErrorRequestHandler = (err, req, res, next) => {
     message = err.message;
     errorSources = [
       {
-        path: "",
+        path: '',
         message: err?.message,
       },
     ];
@@ -50,7 +50,7 @@ const globalErrorHandler: ErrorRequestHandler = (err, req, res, next) => {
     message = err.message;
     errorSources = [
       {
-        path: "",
+        path: '',
         message: err?.message,
       },
     ];
@@ -62,7 +62,7 @@ const globalErrorHandler: ErrorRequestHandler = (err, req, res, next) => {
     message,
     errorSources,
     err,
-    stack: config.NODE_ENV === "development" ? err?.stack : null,
+    stack: config.node_env === 'development' ? err?.stack : null,
   });
 };
 
