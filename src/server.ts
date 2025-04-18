@@ -5,6 +5,7 @@ import app from './app';
 import { errorLogger, logger } from './shared/logger';
 import config from './config';
 import { prisma } from './shared/prisma';
+import seedSuperAdmin from './app/DB/seedDB';
 
 async function bootstrap() {
   // CHECK DATABASE CONNECTION
@@ -12,6 +13,9 @@ async function bootstrap() {
     config.node_env === 'development'
       ? console.log('Database connected')
       : logger.info('Database connected');
+
+    // SEED SUPER ADMIN
+    seedSuperAdmin();
   });
 
   // SERVER
@@ -52,4 +56,5 @@ async function bootstrap() {
   });
 }
 
+// START SERVER
 bootstrap();

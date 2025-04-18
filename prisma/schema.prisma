@@ -35,7 +35,7 @@ model User {
   password                   String
   role                       String
   is_password_reset_required Boolean          @default(true)
-  status                     String
+  status                     String           @default("active")
   is_deleted                 Boolean          @default(false)
   user_permissions           UserPermission[]
   patient                    Patient?

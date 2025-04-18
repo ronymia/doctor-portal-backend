@@ -1,7 +1,7 @@
-import express from "express";
-import { AuthControllers } from "./auth.controller";
-import { AuthValidations } from "./auth.validation";
-import validateRequest from "../../middlewares/validateRequest";
+import express from 'express';
+import { AuthControllers } from './auth.controller';
+import { AuthValidations } from './auth.validation';
+import validateRequest from '../../middlewares/validateRequest';
 
 const router = express.Router();
 
@@ -22,15 +22,18 @@ const router = express.Router();
  *@apiError {forbidden 403} => only only can access this
  *
  *********************/
-router.post(
-  "/login",
-  validateRequest(AuthValidations.loginZodSchema),
-  AuthControllers.loginUser
-);
-router.post(
-  "/refresh-token",
-  validateRequest(AuthValidations.refreshTokenZodSchema),
-  AuthControllers.refreshToken
-);
+router
+  .route('/login')
+  .post(
+    validateRequest(AuthValidations.loginZodSchema),
+    AuthControllers.loginUser,
+  );
+router
+  .route('/refresh-token')
+  .post(
+    validateRequest(AuthValidations.refreshTokenZodSchema),
+    AuthControllers.refreshToken,
+  );
 
+// EXPORT
 export const AuthRoutes = router;
