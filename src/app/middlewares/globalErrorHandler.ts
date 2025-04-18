@@ -1,16 +1,29 @@
-import { ErrorRequestHandler } from 'express';
+/* eslint-disable @typescript-eslint/no-unused-vars */
+/* eslint-disable no-unused-vars */
+import { ErrorRequestHandler, NextFunction, Request, Response } from 'express';
 import { errorLogger } from '../../shared/logger';
 import { TErrorSources } from '../../interfaces/error';
 import AppError from '../../errors/AppError';
 import { ZodError } from 'zod';
 import config from '../../config';
 import handleZodError from '../../errors/handleZodError';
+import httpStatus from 'http-status';
+import { Prisma } from '@prisma/client';
+import handleValidationError from '../../errors/handleValidationError';
+import handleClientKnownError from '../../errors/handleClientKnownError';
 
-const globalErrorHandler: ErrorRequestHandler = (err, req, res, next) => {
+const globalErrorHandler: ErrorRequestHandler = (
+  err,
+  req: Request,
+  res: Response,
+  next: NextFunction,
+) => {
   //Debug
-  config.node_env === 'development'
-    ? console.log(`🐱‍🏍 globalErrorHandler ~~`, err)
-    : errorLogger.error(`🐱‍🏍 globalErrorHandler ~~`, err);
+  if (config.node_env === 'development') {
+    console.debug(`🐱‍🏍 globalErrorHandler ~~`, err);
+  } else {
+    errorLogger.error(`🐱‍🏍 globalErrorHandler ~~`, err);
+  }
 
   //SETTING DEFAULT VALUES
   let statusCode = 500;
@@ -25,7 +38,7 @@ const globalErrorHandler: ErrorRequestHandler = (err, req, res, next) => {
   /*
     ?CHECKING ERRORS TYPE
    * Zod validation error
-   * mongoose validation error
+   * PrismaClientValidationError validation error
    * Duplicate Entity Error
    * mongoose cast error => invalid ObjectId
    * Custom throw error
@@ -34,6 +47,16 @@ const globalErrorHandler: ErrorRequestHandler = (err, req, res, next) => {
   //  ZOD ERRORS
   if (err instanceof ZodError) {
     const simplifiedError = handleZodError(err);
+    statusCode = simplifiedError.statusCode;
+    message = simplifiedError.message;
+    errorSources = simplifiedError.errorSources;
+  } else if (err instanceof Prisma.PrismaClientValidationError) {
+    const simplifiedError = handleValidationError(err);
+    statusCode = simplifiedError.statusCode;
+    message = simplifiedError.message;
+    errorSources = simplifiedError.errorSources;
+  } else if (err instanceof Prisma.PrismaClientKnownRequestError) {
+    const simplifiedError = handleClientKnownError(err);
     statusCode = simplifiedError.statusCode;
     message = simplifiedError.message;
     errorSources = simplifiedError.errorSources;
