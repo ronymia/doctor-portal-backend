@@ -1,84 +1,61 @@
-import httpStatus from "http-status";
-import {
-  User,
-  Profile,
-  Admin,
-  Doctor,
-  Patient,
-  PrismaClient,
-  Prisma,
-} from "@prisma/client";
-import { userSearchableFields } from "./user.constant";
-import { TUserFilters } from "./user.interface";
-import { TPaginationOptions } from "../../../interfaces/pagination";
-import { TGenericResponse } from "../../../interfaces/response";
-import { paginationHelpers } from "../../../helpers/paginationHelpers";
-import AppError from "../../../errors/AppError";
-import { ENUM_USER_ROLE } from "../../../enums/user";
-import config from "../../../config";
-import { generateAdminId } from "./user.utils";
-
-const prisma = new PrismaClient();
+import httpStatus from 'http-status';
+import { User, Profile, Admin, Doctor, Patient } from '@prisma/client';
+import AppError from '../../../errors/AppError';
+import { ENUM_USER_ROLE } from '../../../enums/user';
+import config from '../../../config';
+import { prisma } from '../../../shared/prisma';
+import { PasswordHelpers } from '../../../helpers/passwordHelpers';
 
 //INSERT TO DATABASE
 const createAdminIntoDB = async (
   user: User,
-  profile: Profile
+  profile: Profile,
 ): Promise<User> => {
   // SET ROLE
   user.role = ENUM_USER_ROLE.ADMIN;
 
   // SET DEFAULT PASSWORD
-  user.password = config.default_admin_pass;
+  const result = await prisma.$transaction(async (transactionClient) => {
+    user.password = await PasswordHelpers.passwordHash(
+      config.default_admin_pass,
+    );
 
-  //DEFINE USER
-  let newUserData = null;
+    // CREATE USER
+    const newUser = await transactionClient.user.create({
+      data: user,
+    });
 
-  try {
-    // ADMIN TABLE DATA
-    let admin: Admin = {};
+    //
+    if (!newUser) {
+      throw new AppError(httpStatus.BAD_REQUEST, 'Failed to create Admin');
+    }
 
     // AUTO INCREMENTED GENERATED ADMIN ID
-    const adminId = await generateAdminId();
-    // SET ADMIN ID AS REFERENCE IN USER , ADMIN AND PROFILE TABLE
-    user.user_id = adminId;
-    admin.user_id = adminId;
-    profile.user_id = adminId;
-
-    // CREATE ADMIN
-    const newAdmin = await prisma.admin.create({
-      data: admin,
+    await transactionClient.admin.create({
+      data: { user_id: newUser.id },
     });
-    if (!newAdmin) {
-      throw new AppError(httpStatus.BAD_REQUEST, "Failed yo create Admin");
-    }
 
-    //CREATE PROFILE
-    const newProfile = await prisma.profile.create({
-      data: profile,
+    // CREATE PROFILE
+    const newProfile = await transactionClient.profile.create({
+      data: { ...profile, user_id: newUser.id },
     });
+
+    //
     if (!newProfile) {
-      throw new AppError(httpStatus.BAD_REQUEST, "Failed yo create Admin");
+      throw new AppError(httpStatus.BAD_REQUEST, 'Failed to create Profile');
     }
-    //CREATE USER
-    const newUser = await prisma.user.create({
-      data: user,
-      include: {
-        profile: true,
-        admin: true,
-      },
-    });
-    if (!newUser) {
-      throw new AppError(httpStatus.BAD_REQUEST, "Failed yo create Admin");
-    }
-  } catch (error) {}
 
-  return newUserData;
+    // RETURN
+    return { ...newUser, ...newProfile };
+  });
+
+  return result;
 };
+
 //INSERT TO DATABASE
 const createDoctorIntoDB = async (
   user: User,
-  profile: Profile
+  profile: Profile,
 ): Promise<User> => {
   // SET ROLE
   user.role = ENUM_USER_ROLE.DOCTOR;
@@ -105,7 +82,7 @@ const createDoctorIntoDB = async (
       data: doctor,
     });
     if (!newDoctor) {
-      throw new AppError(httpStatus.BAD_REQUEST, "Failed yo create Doctor");
+      throw new AppError(httpStatus.BAD_REQUEST, 'Failed yo create Doctor');
     }
 
     //CREATE PROFILE
@@ -113,7 +90,7 @@ const createDoctorIntoDB = async (
       data: profile,
     });
     if (!newProfile) {
-      throw new AppError(httpStatus.BAD_REQUEST, "Failed yo create Doctor");
+      throw new AppError(httpStatus.BAD_REQUEST, 'Failed yo create Doctor');
     }
     //CREATE USER
     const newUser = await prisma.user.create({
@@ -124,7 +101,7 @@ const createDoctorIntoDB = async (
       },
     });
     if (!newUser) {
-      throw new AppError(httpStatus.BAD_REQUEST, "Failed yo create Doctor");
+      throw new AppError(httpStatus.BAD_REQUEST, 'Failed yo create Doctor');
     }
   } catch (error) {}
 
@@ -133,7 +110,7 @@ const createDoctorIntoDB = async (
 //INSERT TO DATABASE
 const createPatientIntoDB = async (
   user: User,
-  profile: Profile
+  profile: Profile,
 ): Promise<User> => {
   // SET ROLE
   user.role = ENUM_USER_ROLE.PATIENT;
@@ -160,7 +137,7 @@ const createPatientIntoDB = async (
       data: patient,
     });
     if (!newPatient) {
-      throw new AppError(httpStatus.BAD_REQUEST, "Failed yo create Patient");
+      throw new AppError(httpStatus.BAD_REQUEST, 'Failed yo create Patient');
     }
 
     //CREATE PROFILE
@@ -168,7 +145,7 @@ const createPatientIntoDB = async (
       data: profile,
     });
     if (!newProfile) {
-      throw new AppError(httpStatus.BAD_REQUEST, "Failed yo create Patient");
+      throw new AppError(httpStatus.BAD_REQUEST, 'Failed yo create Patient');
     }
     //CREATE USER
     const newUser = await prisma.user.create({
@@ -179,7 +156,7 @@ const createPatientIntoDB = async (
       },
     });
     if (!newUser) {
-      throw new AppError(httpStatus.BAD_REQUEST, "Failed yo create Patient");
+      throw new AppError(httpStatus.BAD_REQUEST, 'Failed yo create Patient');
     }
   } catch (error) {}
 

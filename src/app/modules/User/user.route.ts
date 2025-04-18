@@ -1,5 +1,7 @@
-import express from "express";
-import { UserControllers } from "./user.controller";
+import express from 'express';
+import { UserControllers } from './user.controller';
+import auth from '../../middlewares/auth';
+import { ENUM_USER_ROLE } from '../../../enums/user';
 
 const router = express.Router();
 
@@ -21,7 +23,9 @@ const router = express.Router();
  *
  *********************/
 
-router.post("/create-admin", UserControllers.createAdmin);
+router
+  .route('/create-admin')
+  .post(auth(ENUM_USER_ROLE.SUPER_ADMIN), UserControllers.createAdmin);
 
 /***************
  * @api {post} /products
@@ -40,7 +44,7 @@ router.post("/create-admin", UserControllers.createAdmin);
  *@apiError {forbidden 403} => only only can access this
  *
  *********************/
-router.post("/create-doctor", UserControllers.createDoctor);
+router.post('/create-doctor', UserControllers.createDoctor);
 
 /***************
  * @api {post} /products
@@ -59,6 +63,6 @@ router.post("/create-doctor", UserControllers.createDoctor);
  *@apiError {forbidden 403} => only only can access this
  *
  *********************/
-router.post("/create-patient", UserControllers.createPatient);
+router.post('/create-patient', UserControllers.createPatient);
 
 export const UserRoutes = router;
