@@ -1,13 +1,12 @@
 import httpStatus from 'http-status';
-import { Specialization, PrismaClient, Prisma } from '@prisma/client';
+import { Specialization, Prisma } from '@prisma/client';
 import { TSpecializationFilters } from './specialization.interface';
 import { TPaginationOptions } from '../../../interfaces/pagination';
 import { TGenericResponse } from '../../../interfaces/response';
 import { paginationHelpers } from '../../../helpers/paginationHelpers';
 import { specializationSearchableFields } from './specialization.constant';
 import AppError from '../../../errors/AppError';
-
-const prisma = new PrismaClient();
+import { prisma } from '../../../shared/prisma';
 
 //INSERT TO DATABASE
 const createSpecializationIntoDB = async (
@@ -22,7 +21,7 @@ const createSpecializationIntoDB = async (
 
 //
 const getSpecializationByIdFromDB = async (
-  id: number,
+  id: string,
 ): Promise<Specialization | null> => {
   const result = await prisma.specialization.findUnique({
     where: { id },
@@ -107,7 +106,7 @@ const updateSpecializationIntoDB = async (
     throw new AppError(httpStatus.NOT_FOUND, 'Specialization not found');
   }
 
-  const result = await prisma.specialization.findUnique({
+  const result = await prisma.specialization.update({
     where: { id },
     data: payload,
   });

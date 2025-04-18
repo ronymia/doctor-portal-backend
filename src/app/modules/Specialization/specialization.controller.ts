@@ -29,9 +29,7 @@ const getSpecializationById = catchAsync(
   async (req: Request, res: Response) => {
     const { id } = req.params; //COPY
     //SEND DATA TO BUSINESS LOGIC
-    const result = await SpecializationServices.getSpecializationByIdFromDB(
-      Number(id),
-    );
+    const result = await SpecializationServices.getSpecializationByIdFromDB(id);
 
     //SEND RESPONSE
     sendResponse<Specialization>(res, {
