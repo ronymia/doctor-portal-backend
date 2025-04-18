@@ -1,7 +1,9 @@
-import express from "express";
-import validateRequest from "../../middlewares/validateRequest";
-import { TimeSlotValidations } from "./timeSlot.validation";
-import { TimeSlotControllers } from "./timeSlot.controller";
+import express from 'express';
+import validateRequest from '../../middlewares/validateRequest';
+import { TimeSlotValidations } from './timeSlot.validation';
+import { TimeSlotControllers } from './timeSlot.controller';
+import auth from '../../middlewares/auth';
+import { ENUM_USER_ROLE } from '../../../enums/user';
 
 const router = express.Router();
 
@@ -23,11 +25,13 @@ const router = express.Router();
  *
  *********************/
 
-router.post(
-  "/",
-  validateRequest(TimeSlotValidations.createTimeSlotZodSchema),
-  TimeSlotControllers.createTimeSlot
-);
+router
+  .route('/')
+  .post(
+    auth(ENUM_USER_ROLE.SUPER_ADMIN, ENUM_USER_ROLE.ADMIN),
+    validateRequest(TimeSlotValidations.createTimeSlotZodSchema),
+    TimeSlotControllers.createTimeSlot,
+  );
 
 /***************
  * @api {post} /products
@@ -47,7 +51,7 @@ router.post(
  *
  *********************/
 
-router.get("/:id", TimeSlotControllers.getTimeSlotById);
+router.route('/:id').get(TimeSlotControllers.getTimeSlotById);
 
 /***************
  * @api {post} /products
@@ -67,7 +71,7 @@ router.get("/:id", TimeSlotControllers.getTimeSlotById);
  *
  *********************/
 
-router.get("/:id", TimeSlotControllers.getAllTimeSlots);
+router.route('/').get(TimeSlotControllers.getAllTimeSlots);
 
 /***************
  * @api {post} /products
@@ -87,11 +91,13 @@ router.get("/:id", TimeSlotControllers.getAllTimeSlots);
  *
  *********************/
 
-router.patch(
-  "/:id",
-  validateRequest(TimeSlotValidations.updateTimeSlotZodSchema),
-  TimeSlotControllers.updateTimeSlot
-);
+router
+  .route('/:id')
+  .patch(
+    auth(ENUM_USER_ROLE.SUPER_ADMIN, ENUM_USER_ROLE.ADMIN),
+    validateRequest(TimeSlotValidations.updateTimeSlotZodSchema),
+    TimeSlotControllers.updateTimeSlot,
+  );
 
 /***************
  * @api {post} /products
@@ -111,6 +117,11 @@ router.patch(
  *
  *********************/
 
-router.delete("/:id", TimeSlotControllers.deleteTimeSlot);
+router
+  .route('/:id')
+  .delete(
+    auth(ENUM_USER_ROLE.SUPER_ADMIN, ENUM_USER_ROLE.ADMIN),
+    TimeSlotControllers.deleteTimeSlot,
+  );
 
 export const TimeSlotRoutes = router;

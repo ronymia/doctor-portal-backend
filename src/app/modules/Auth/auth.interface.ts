@@ -1,4 +1,5 @@
-import { ENUM_USER_ROLE } from "../../../enums/user";
+import { User } from '@prisma/client';
+import { ENUM_USER_ROLE } from '../../../enums/user';
 
 export type TLoginUser = {
   id: string;
@@ -10,7 +11,13 @@ export type TLoginUser = {
 export type TLoginUserResponse = {
   access_token: string;
   refresh_token?: string;
-  is_Password_reset_required?: boolean;
+  user: {
+    id: string;
+    role: User['role'];
+    status: User['status'];
+    phone_number: User['phone_number'];
+    email: User['email'];
+  };
 };
 
 export type TRefreshTokenResponse = {

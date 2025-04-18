@@ -1,13 +1,12 @@
-import httpStatus from "http-status";
-import { TimeSlot, PrismaClient, Prisma } from "@prisma/client";
-import { TTimeSlotFilters } from "./timeSlot.interface";
-import { TPaginationOptions } from "../../../interfaces/pagination";
-import { TGenericResponse } from "../../../interfaces/response";
-import { paginationHelpers } from "../../../helpers/paginationHelpers";
-import { timeSlotSearchableFields } from "./timeSlot.constant";
-import AppError from "../../../errors/AppError";
-
-const prisma = new PrismaClient();
+import httpStatus from 'http-status';
+import { TimeSlot, Prisma } from '@prisma/client';
+import { TTimeSlotFilters } from './timeSlot.interface';
+import { TPaginationOptions } from '../../../interfaces/pagination';
+import { TGenericResponse } from '../../../interfaces/response';
+import { paginationHelpers } from '../../../helpers/paginationHelpers';
+import { timeSlotSearchableFields } from './timeSlot.constant';
+import AppError from '../../../errors/AppError';
+import { prisma } from '../../../shared/prisma';
 
 //INSERT TO DATABASE TimeSlot FUNCTION
 const createTimeSlotIntoDB = async (payload: TimeSlot): Promise<TimeSlot> => {
@@ -18,7 +17,7 @@ const createTimeSlotIntoDB = async (payload: TimeSlot): Promise<TimeSlot> => {
   return result;
 };
 
-//
+// GET BY ID FROM DATABASE TimeSlot FUNCTION
 const getTimeSlotByIdFromDB = async (id: string): Promise<TimeSlot | null> => {
   const result = await prisma.timeSlot.findUnique({
     where: { id },
@@ -30,7 +29,7 @@ const getTimeSlotByIdFromDB = async (id: string): Promise<TimeSlot | null> => {
 // GET PAGINATION SORTING AND FILTER TimeSlot FUNCTION
 const getAllTimeSlotsFromDB = async (
   filters: TTimeSlotFilters,
-  paginationOptions: TPaginationOptions
+  paginationOptions: TPaginationOptions,
 ): Promise<TGenericResponse<TimeSlot[]>> => {
   const { page, skip, limit, sortBy, sortOrder } =
     paginationHelpers.calculatePagination(paginationOptions);
@@ -47,7 +46,7 @@ const getAllTimeSlotsFromDB = async (
       OR: timeSlotSearchableFields.map((field) => ({
         [field]: {
           contains: searchTerm,
-          mode: "insensitive",
+          mode: 'insensitive',
         },
       })),
     });
@@ -96,18 +95,24 @@ const getAllTimeSlotsFromDB = async (
 // UPDATE INTO DATABASE TimeSlot FUNCTION
 const updateTimeSlotIntoDB = async (
   id: string,
-  payload: Partial<TimeSlot>
+  payload: Partial<TimeSlot>,
 ): Promise<TimeSlot | null> => {
+  // CHECK IF TimeSlot EXISTS
   const isExist = await prisma.timeSlot.findUnique({
     where: { id },
   });
   if (!isExist) {
-    throw new AppError(httpStatus.NOT_FOUND, "Time Slot not found");
+    throw new AppError(httpStatus.NOT_FOUND, 'Time Slot not found');
   }
 
-  const result = await prisma.timeSlot.findUnique({
+  // UPDATE ON DATABASE
+  const result = await prisma.timeSlot.update({
     where: { id },
     data: payload,
+    include: {
+      available_service: true,
+      doctor_availabilities: true,
+    },
   });
 
   return result;
@@ -115,6 +120,15 @@ const updateTimeSlotIntoDB = async (
 
 // DELETE FROM DATABASE TimeSlot FUNCTION
 const deleteTimeSlotFromDB = async (id: string): Promise<TimeSlot | null> => {
+  // CHECK IF TimeSlot EXISTS
+  const isExist = await prisma.timeSlot.findUnique({
+    where: { id },
+  });
+  if (!isExist) {
+    throw new AppError(httpStatus.NOT_FOUND, 'Time Slot not found');
+  }
+
+  // DELETE FROM DATABASE
   const result = await prisma.timeSlot.delete({
     where: { id },
   });

@@ -1,28 +1,28 @@
-import { Request, RequestHandler, Response } from "express";
-import { TimeSlot } from "@prisma/client";
-import httpStatus from "http-status";
-import catchAsync from "../../../shared/catchAsync";
-import { TimeSlotServices } from "./timeSlot.service";
-import sendResponse from "../../../shared/sendResponse";
-import pick from "../../../shared/pick";
-import { timeSlotFilterableFields } from "./timeSlot.constant";
-import { paginationFields } from "../../../constants/pagination";
+import { Request, RequestHandler, Response } from 'express';
+import { TimeSlot } from '@prisma/client';
+import httpStatus from 'http-status';
+import catchAsync from '../../../shared/catchAsync';
+import { TimeSlotServices } from './timeSlot.service';
+import sendResponse from '../../../shared/sendResponse';
+import pick from '../../../shared/pick';
+import { timeSlotFilterableFields } from './timeSlot.constant';
+import { paginationFields } from '../../../constants/pagination';
 
 // CREATE CONTROLLER FUNCTION
 const createTimeSlot: RequestHandler = catchAsync(
   async (req: Request, res: Response) => {
-    const { ...timeSlotData } = req.body; //COPY
+    const { ...payloadData } = req.body; //COPY
     //SEND DATA TO BUSINESS LOGIC
-    const result = await TimeSlotServices.createTimeSlotIntoDB(timeSlotData);
+    const result = await TimeSlotServices.createTimeSlotIntoDB(payloadData);
 
     //SEND RESPONSE
     sendResponse<TimeSlot>(res, {
       statusCode: httpStatus.CREATED,
       success: true,
-      message: "Time Slot created Successfully",
+      message: 'Time Slot created Successfully',
       data: result,
     });
-  }
+  },
 );
 
 // GET BY ID  CONTROLLER FUNCTION
@@ -36,10 +36,10 @@ const getTimeSlotById: RequestHandler = catchAsync(
     sendResponse<TimeSlot>(res, {
       statusCode: httpStatus.OK,
       success: true,
-      message: "Time Slot retrieved Successfully",
+      message: 'Time Slot retrieved Successfully',
       data: result,
     });
-  }
+  },
 );
 
 // GET BY ID  CONTROLLER FN
@@ -50,39 +50,36 @@ const getAllTimeSlots: RequestHandler = catchAsync(
     //SEND DATA TO BUSINESS LOGIC
     const result = await TimeSlotServices.getAllTimeSlotsFromDB(
       filters,
-      paginationOptions
+      paginationOptions,
     );
 
     //SEND RESPONSE
     sendResponse<TimeSlot[]>(res, {
       statusCode: httpStatus.OK,
       success: true,
-      message: "Time Slot fetch Successfully",
+      message: 'Time Slot fetch Successfully',
       meta: result.meta,
       data: result.data,
     });
-  }
+  },
 );
 
 // UPDATE CONTROLLER FUNCTION
 const updateTimeSlot: RequestHandler = catchAsync(
   async (req: Request, res: Response) => {
     const { id } = req.params; //COPY
-    const { ...timeSlotData } = req.body;
+    const { ...payloadData } = req.body;
     //SEND DATA TO BUSINESS LOGIC
-    const result = await TimeSlotServices.updateTimeSlotIntoDB(
-      id,
-      timeSlotData
-    );
+    const result = await TimeSlotServices.updateTimeSlotIntoDB(id, payloadData);
 
     //SEND RESPONSE
     sendResponse<TimeSlot>(res, {
       statusCode: httpStatus.OK,
       success: true,
-      message: "Time Slot update Successfully",
+      message: 'Time Slot update Successfully',
       data: result,
     });
-  }
+  },
 );
 
 // DELETE CONTROLLER FUNCTION
@@ -96,12 +93,13 @@ const deleteTimeSlot: RequestHandler = catchAsync(
     sendResponse<TimeSlot>(res, {
       statusCode: httpStatus.OK,
       success: true,
-      message: "Time Slot Delete Successfully",
+      message: 'Time Slot Delete Successfully',
       data: result,
     });
-  }
+  },
 );
 
+// EXPORT
 export const TimeSlotControllers = {
   createTimeSlot,
   getTimeSlotById,

@@ -12,11 +12,11 @@ const router = express.Router();
 const moduleRoutes = [
   // ... routes
   {
-    path: '/auth',
+    path: '/v1.0/auth',
     route: AuthRoutes,
   },
   {
-    path: '/users',
+    path: '/v1.0/users',
     route: UserRoutes,
   },
   {
@@ -32,7 +32,7 @@ const moduleRoutes = [
     route: ServiceRoutes,
   },
   {
-    path: '/time-slots',
+    path: '/v1.0/time-slots',
     route: TimeSlotRoutes,
   },
   {
@@ -41,6 +41,7 @@ const moduleRoutes = [
   },
 ];
 
+// routes
 moduleRoutes.forEach(({ path, route }) => router.use(path, route));
 
 export default router;
