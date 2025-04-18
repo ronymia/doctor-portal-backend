@@ -28,7 +28,7 @@ const moduleRoutes = [
     route: SpecializationRoutes,
   },
   {
-    path: '/services',
+    path: '/v1.0/services',
     route: ServiceRoutes,
   },
   {

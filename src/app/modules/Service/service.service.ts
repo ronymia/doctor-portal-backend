@@ -1,15 +1,14 @@
-import httpStatus from "http-status";
-import { Service, PrismaClient, Prisma } from "@prisma/client";
-import { TServiceFilters } from "./service.interface";
-import { TPaginationOptions } from "../../../interfaces/pagination";
-import { TGenericResponse } from "../../../interfaces/response";
-import { paginationHelpers } from "../../../helpers/paginationHelpers";
-import { serviceSearchableFields } from "./service.constant";
-import AppError from "../../../errors/AppError";
+import httpStatus from 'http-status';
+import { Prisma, Service } from '@prisma/client';
+import { TServiceFilters } from './service.interface';
+import { TPaginationOptions } from '../../../interfaces/pagination';
+import { TGenericResponse } from '../../../interfaces/response';
+import { paginationHelpers } from '../../../helpers/paginationHelpers';
+import { serviceSearchableFields } from './service.constant';
+import AppError from '../../../errors/AppError';
+import { prisma } from '../../../shared/prisma';
 
-const prisma = new PrismaClient();
-
-//INSERT TO DATABASE SERVICE FUNCTION
+// INSERT TO DATABASE SERVICE FUNCTION
 const createServiceIntoDB = async (payload: Service): Promise<Service> => {
   const result = await prisma.service.create({
     data: payload,
@@ -18,7 +17,7 @@ const createServiceIntoDB = async (payload: Service): Promise<Service> => {
   return result;
 };
 
-//
+// GET BY ID FROM DATABASE SERVICE FUNCTION
 const getServiceByIdFromDB = async (id: string): Promise<Service | null> => {
   const result = await prisma.service.findUnique({
     where: { id },
@@ -30,7 +29,7 @@ const getServiceByIdFromDB = async (id: string): Promise<Service | null> => {
 // GET PAGINATION SORTING AND FILTER SERVICE FUNCTION
 const getAllServicesFromDB = async (
   filters: TServiceFilters,
-  paginationOptions: TPaginationOptions
+  paginationOptions: TPaginationOptions,
 ): Promise<TGenericResponse<Service[]>> => {
   const { page, skip, limit, sortBy, sortOrder } =
     paginationHelpers.calculatePagination(paginationOptions);
@@ -47,7 +46,7 @@ const getAllServicesFromDB = async (
       OR: serviceSearchableFields.map((field) => ({
         [field]: {
           contains: searchTerm,
-          mode: "insensitive",
+          mode: 'insensitive',
         },
       })),
     });
@@ -96,16 +95,18 @@ const getAllServicesFromDB = async (
 // UPDATE INTO DATABASE SERVICE FUNCTION
 const updateServiceIntoDB = async (
   id: string,
-  payload: Partial<Service>
+  payload: Partial<Service>,
 ): Promise<Service | null> => {
+  // CHECK IF SERVICE EXISTS
   const isExist = await prisma.service.findUnique({
     where: { id },
   });
   if (!isExist) {
-    throw new AppError(httpStatus.NOT_FOUND, "Service not found");
+    throw new AppError(httpStatus.NOT_FOUND, 'Service not found');
   }
 
-  const result = await prisma.service.findUnique({
+  // UPDATE ON DATABASE
+  const result = await prisma.service.update({
     where: { id },
     data: payload,
   });
@@ -115,6 +116,16 @@ const updateServiceIntoDB = async (
 
 // DELETE FROM DATABASE SERVICE FUNCTION
 const deleteServiceFromDB = async (id: string): Promise<Service | null> => {
+  // CHECK IF SERVICE EXISTS
+  const isExist = await prisma.service.findUnique({
+    where: { id },
+  });
+  // THROW ERROR
+  if (!isExist) {
+    throw new AppError(httpStatus.NOT_FOUND, 'Service not found');
+  }
+
+  // DELETE FROM DATABASE
   const result = await prisma.service.delete({
     where: { id },
   });

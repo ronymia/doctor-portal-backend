@@ -1,7 +1,9 @@
-import express from "express";
-import validateRequest from "../../middlewares/validateRequest";
-import { ServiceValidations } from "./service.validation";
-import { ServiceControllers } from "./service.controller";
+import express from 'express';
+import validateRequest from '../../middlewares/validateRequest';
+import { ServiceValidations } from './service.validation';
+import { ServiceControllers } from './service.controller';
+import auth from '../../middlewares/auth';
+import { ENUM_USER_ROLE } from '../../../enums/user';
 
 const router = express.Router();
 
@@ -23,11 +25,13 @@ const router = express.Router();
  *
  *********************/
 
-router.post(
-  "/",
-  validateRequest(ServiceValidations.createServiceZodSchema),
-  ServiceControllers.createService
-);
+router
+  .route('/')
+  .post(
+    auth(ENUM_USER_ROLE.SUPER_ADMIN, ENUM_USER_ROLE.ADMIN),
+    validateRequest(ServiceValidations.createServiceZodSchema),
+    ServiceControllers.createService,
+  );
 
 /***************
  * @api {post} /products
@@ -47,7 +51,12 @@ router.post(
  *
  *********************/
 
-router.get("/:id", ServiceControllers.getServiceById);
+router
+  .route('/:id')
+  .get(
+    auth(ENUM_USER_ROLE.SUPER_ADMIN, ENUM_USER_ROLE.ADMIN),
+    ServiceControllers.getServiceById,
+  );
 
 /***************
  * @api {post} /products
@@ -67,7 +76,12 @@ router.get("/:id", ServiceControllers.getServiceById);
  *
  *********************/
 
-router.get("/:id", ServiceControllers.getAllServices);
+router
+  .route('/')
+  .get(
+    auth(ENUM_USER_ROLE.SUPER_ADMIN, ENUM_USER_ROLE.ADMIN),
+    ServiceControllers.getAllServices,
+  );
 
 /***************
  * @api {post} /products
@@ -87,11 +101,13 @@ router.get("/:id", ServiceControllers.getAllServices);
  *
  *********************/
 
-router.patch(
-  "/:id",
-  validateRequest(ServiceValidations.updateServiceZodSchema),
-  ServiceControllers.updateService
-);
+router
+  .route('/')
+  .patch(
+    auth(ENUM_USER_ROLE.SUPER_ADMIN, ENUM_USER_ROLE.ADMIN),
+    validateRequest(ServiceValidations.updateServiceZodSchema),
+    ServiceControllers.updateService,
+  );
 
 /***************
  * @api {post} /products
@@ -111,6 +127,12 @@ router.patch(
  *
  *********************/
 
-router.delete("/:id", ServiceControllers.deleteService);
+router
+  .route('/:id')
+  .delete(
+    auth(ENUM_USER_ROLE.SUPER_ADMIN, ENUM_USER_ROLE.ADMIN),
+    ServiceControllers.deleteService,
+  );
 
+// EXPORT
 export const ServiceRoutes = router;
