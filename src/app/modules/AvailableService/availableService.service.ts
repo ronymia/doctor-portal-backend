@@ -1,15 +1,15 @@
-import httpStatus from "http-status";
-import { AvailableService, PrismaClient, Prisma } from "@prisma/client";
-import { TAvailableServiceFilters } from "./availableService.interface";
-import { TPaginationOptions } from "../../../interfaces/pagination";
-import { TGenericResponse } from "../../../interfaces/response";
-import { paginationHelpers } from "../../../helpers/paginationHelpers";
-import { availableServiceSearchableFields } from "./availableService.constant";
+import httpStatus from 'http-status';
+import { AvailableService, PrismaClient, Prisma } from '@prisma/client';
+import { TAvailableServiceFilters } from './availableService.interface';
+import { TPaginationOptions } from '../../../interfaces/pagination';
+import { TGenericResponse } from '../../../interfaces/response';
+import { paginationHelpers } from '../../../helpers/paginationHelpers';
+import { availableServiceSearchableFields } from './availableService.constant';
+import { prisma } from '../../../shared/prisma';
 
-const prisma = new PrismaClient();
-
+// GET BY ID FROM DATABASE AvailableService FUNCTION
 const getAvailableServiceByIdFromDB = async (
-  id: string
+  id: string,
 ): Promise<AvailableService | null> => {
   const result = await prisma.availableService.findUnique({
     where: { id },
@@ -18,9 +18,10 @@ const getAvailableServiceByIdFromDB = async (
   return result;
 };
 
+// GET ALL FROM DATABASE AvailableService FUNCTION
 const getAllAvailableServicesFromDB = async (
   filters: TAvailableServiceFilters,
-  paginationOptions: TPaginationOptions
+  paginationOptions: TPaginationOptions,
 ): Promise<TGenericResponse<AvailableService[]>> => {
   const { page, skip, limit, sortBy, sortOrder } =
     paginationHelpers.calculatePagination(paginationOptions);
@@ -37,7 +38,7 @@ const getAllAvailableServicesFromDB = async (
       OR: availableServiceSearchableFields.map((field) => ({
         [field]: {
           contains: searchTerm,
-          mode: "insensitive",
+          mode: 'insensitive',
         },
       })),
     });
