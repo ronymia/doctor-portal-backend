@@ -6,6 +6,7 @@ import { AuthRoutes } from '../modules/Auth/auth.route';
 import { ServiceRoutes } from '../modules/Service/service.route';
 import { TimeSlotRoutes } from '../modules/TimeSlot/timeSlot.route';
 import { AvailableServiceRoutes } from '../modules/AvailableService/availableService.route';
+import { AppointmentRoutes } from '../modules/Appointment/appointment.route';
 
 const router = express.Router();
 
@@ -38,6 +39,10 @@ const moduleRoutes = [
   {
     path: '/available-services',
     route: AvailableServiceRoutes,
+  },
+  {
+    path: '/v1.0/appointments',
+    route: AppointmentRoutes,
   },
 ];
 
