@@ -1,18 +1,18 @@
-import { NextFunction, Request, Response } from "express";
-import httpStatus from "http-status";
-import { Secret } from "jsonwebtoken";
-import AppError from "../../errors/AppError";
-import { JwtHelpers } from "../../helpers/jwtHelpers";
-import config from "../../config";
+import { NextFunction, Request, Response } from 'express';
+import httpStatus from 'http-status';
+import { Secret } from 'jsonwebtoken';
+import AppError from '../../errors/AppError';
+import { JwtHelpers } from '../../helpers/jwtHelpers';
+import config from '../../config';
 
 const auth =
   (...requiredRoles: string[]) =>
   async (req: Request, res: Response, next: NextFunction) => {
     try {
       //get authorization token
-      const token = req.headers.authorization;
+      const token = req.headers.authorization?.split(' ')[1];
       if (!token) {
-        throw new AppError(httpStatus.UNAUTHORIZED, "You are not authorized");
+        throw new AppError(httpStatus.UNAUTHORIZED, 'You are not authorized');
       }
       // verify token
       let verifiedUser = null;
@@ -23,7 +23,7 @@ const auth =
 
       // role based guard
       if (requiredRoles.length && !requiredRoles.includes(verifiedUser.role)) {
-        throw new AppError(httpStatus.FORBIDDEN, "Forbidden");
+        throw new AppError(httpStatus.FORBIDDEN, 'Forbidden');
       }
       next();
     } catch (error) {
