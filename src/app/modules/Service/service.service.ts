@@ -133,6 +133,7 @@ const deleteServiceFromDB = async (id: string): Promise<Service | null> => {
   return result;
 };
 
+// EXPORT
 export const ServiceServices = {
   createServiceIntoDB,
   getServiceByIdFromDB,

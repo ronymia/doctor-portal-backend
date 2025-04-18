@@ -37,7 +37,7 @@ const moduleRoutes = [
     route: TimeSlotRoutes,
   },
   {
-    path: '/available-services',
+    path: '/v1.0/available-services',
     route: AvailableServiceRoutes,
   },
   {
