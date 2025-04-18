@@ -24,7 +24,7 @@ const moduleRoutes = [
     route: PermissionRoutes,
   },
   {
-    path: '/specializations',
+    path: '/v1.0/specializations',
     route: SpecializationRoutes,
   },
   {

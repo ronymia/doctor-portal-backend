@@ -2,6 +2,8 @@ import express from 'express';
 import validateRequest from '../../middlewares/validateRequest';
 import { SpecializationValidations } from './specialization.validation';
 import { SpecializationControllers } from './specialization.controller';
+import auth from '../../middlewares/auth';
+import { ENUM_USER_ROLE } from '../../../enums/user';
 
 const router = express.Router();
 
@@ -23,11 +25,13 @@ const router = express.Router();
  *
  *********************/
 
-router.post(
-  '/',
-  validateRequest(SpecializationValidations.createSpecializationZodSchema),
-  SpecializationControllers.createSpecialization,
-);
+router
+  .route('/')
+  .post(
+    auth(ENUM_USER_ROLE.SUPER_ADMIN, ENUM_USER_ROLE.ADMIN),
+    validateRequest(SpecializationValidations.createSpecializationZodSchema),
+    SpecializationControllers.createSpecialization,
+  );
 
 /***************
  * @api {post} /products
@@ -47,7 +51,12 @@ router.post(
  *
  *********************/
 
-router.get('/:id', SpecializationControllers.getSpecializationById);
+router
+  .route('/:id')
+  .get(
+    auth(ENUM_USER_ROLE.SUPER_ADMIN, ENUM_USER_ROLE.ADMIN),
+    SpecializationControllers.getSpecializationById,
+  );
 
 /***************
  * @api {post} /products
@@ -67,7 +76,12 @@ router.get('/:id', SpecializationControllers.getSpecializationById);
  *
  *********************/
 
-router.get('/:id', SpecializationControllers.getAllSpecializations);
+router
+  .route('/')
+  .get(
+    auth(ENUM_USER_ROLE.SUPER_ADMIN, ENUM_USER_ROLE.ADMIN),
+    SpecializationControllers.getAllSpecializations,
+  );
 
 /***************
  * @api {post} /products
@@ -87,11 +101,13 @@ router.get('/:id', SpecializationControllers.getAllSpecializations);
  *
  *********************/
 
-router.patch(
-  '/:id',
-  validateRequest(SpecializationValidations.updateSpecializationZodSchema),
-  SpecializationControllers.updateSpecialization,
-);
+router
+  .route('/:id')
+  .patch(
+    auth(ENUM_USER_ROLE.SUPER_ADMIN, ENUM_USER_ROLE.ADMIN),
+    validateRequest(SpecializationValidations.updateSpecializationZodSchema),
+    SpecializationControllers.updateSpecialization,
+  );
 
 /***************
  * @api {post} /products
@@ -111,6 +127,11 @@ router.patch(
  *
  *********************/
 
-router.delete('/:id', SpecializationControllers.deleteSpecialization);
+router
+  .route('/:id')
+  .delete(
+    auth(ENUM_USER_ROLE.SUPER_ADMIN, ENUM_USER_ROLE.ADMIN),
+    SpecializationControllers.deleteSpecialization,
+  );
 
 export const SpecializationRoutes = router;

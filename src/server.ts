@@ -4,8 +4,17 @@ import { Server } from 'http';
 import app from './app';
 import { errorLogger, logger } from './shared/logger';
 import config from './config';
+import { prisma } from './shared/prisma';
 
 async function bootstrap() {
+  // CHECK DATABASE CONNECTION
+  prisma.$connect().then(() => {
+    config.node_env === 'development'
+      ? console.log('Database connected')
+      : logger.info('Database connected');
+  });
+
+  // SERVER
   const server: Server = app.listen(config.port, () => {
     config.node_env === 'development'
       ? console.log(`Server running on port ${config.port}`)
