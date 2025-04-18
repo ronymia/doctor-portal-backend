@@ -109,10 +109,6 @@ const updateTimeSlotIntoDB = async (
   const result = await prisma.timeSlot.update({
     where: { id },
     data: payload,
-    include: {
-      available_service: true,
-      doctor_availabilities: true,
-    },
   });
 
   return result;
