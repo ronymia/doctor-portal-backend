@@ -8,13 +8,15 @@ const handleClientKnownError = (
   // ERROR STATUS CODE
   const statusCode = httpStatus.NOT_ACCEPTABLE;
 
+  console.log({ error: error.meta });
+
   // ERROR MESSAGES
   const errorMessages: string[] = error.message.split('\n');
 
   // ERROR SOURCE
   const errorSources: TErrorSources = [
     {
-      path: '',
+      path: error?.meta?.target?.join(','),
       message: errorMessages[errorMessages.length - 1],
     },
   ];
