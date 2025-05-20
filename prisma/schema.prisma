@@ -7,44 +7,82 @@ datasource db {
   url      = env("DATABASE_URL")
 }
 
-model Permission {
-  id   String @id @default(uuid())
-  name String @unique
+enum Role {
+  SUPER_ADMIN
+  ADMIN
+  DOCTOR
+  PATIENT
+}
 
-  created_at       DateTime         @default(now())
-  updated_at       DateTime         @updatedAt
-  user_permissions UserPermission[]
+enum UserAccountStatus {
+  ACTIVE // User can log in and use the app
+  INACTIVE // Account exists but is temporarily paused
+  PENDING_VERIFICATION // requires email/phone/identity verification before activation.
+  SUSPENDED //  temporary restriction
+  BLOCKED // User is banned or restricted
+  DELETED // account deleted
+}
+
+enum AppointmentStatus {
+  SCHEDULED // Future appointment booked
+  COMPLETED // Appointment finished
+  CANCELLED // User or system cancelled it
+  NO_SHOW // Patient missed it
+  RESCHEDULED // Appointment moved to new time
+  PENDING_PAYMENT // Payment required before confirmation
+}
+
+enum PaymentStatus {
+  PENDING // Payment is initiated but not completed
+  PAID // Payment completed successfully
+  FAILED // Payment attempt failed
+  REFUNDED // Payment was completed, then refunded
+  CANCELLED // Payment was cancelled before completion
+}
+
+enum Gender {
+  MALE
+  FEMALE
+  OTHER
+}
+
+model Permission {
+  id              String           @id @default(uuid())
+  name            String           @unique
+  userPermissions UserPermission[]
+
+  createdAt DateTime @default(now()) @map("created_at")
+  updatedAt DateTime @updatedAt @map("updated_at")
 
   @@map("permissions")
 }
 
 model UserPermission {
-  permission    Permission @relation(fields: [permission_id], references: [id])
-  permission_id String
-  user          User       @relation(fields: [user_id], references: [id])
-  user_id       String
+  permission   Permission @relation(fields: [permissionId], references: [id])
+  permissionId String     @map("permission_id")
+  user         User       @relation(fields: [userId], references: [id])
+  userId       String     @map("user_id")
 
-  @@id([permission_id, user_id])
+  @@id([permissionId, userId])
   @@map("user_permissions")
 }
 
 model User {
-  id                         String           @id @default(uuid())
-  email                      String           @unique
-  phone_number               String           @unique
-  password                   String
-  role                       String
-  is_password_reset_required Boolean          @default(true)
-  status                     String           @default("active")
-  is_deleted                 Boolean          @default(false)
-  user_permissions           UserPermission[]
-  patient                    Patient?
-  doctor                     Doctor?
-  admin                      Admin?
-  profile                    Profile?
+  id                      String            @id @default(uuid())
+  email                   String            @unique
+  phoneNumber             String            @unique @map("phone_number")
+  password                String
+  role                    Role
+  isPasswordResetRequired Boolean           @default(true) @map("is_password_reset_required")
+  status                  UserAccountStatus @default(PENDING_VERIFICATION)
+  userPermissions         UserPermission[]
+  patient                 Patient?
+  admin                   Admin?
+  profile                 Profile?
+  doctor                  Doctor?
 
-  created_at DateTime @default(now())
-  updated_at DateTime @updatedAt
+  createdAt DateTime @default(now()) @map("created_at")
+  updatedAt DateTime @updatedAt @map("updated_at")
 
   @@map("users")
 }
@@ -56,157 +94,157 @@ model Specialization {
   doctors     Doctor[]
   services    Service[]
 
-  created_at DateTime @default(now())
-  updated_at DateTime @updatedAt
+  createdAt DateTime @default(now()) @map("created_at")
+  updatedAt DateTime @updatedAt @map("updated_at")
 
   @@map("specializations")
 }
 
 model Doctor {
-  id                String            @id @default(uuid())
-  doctor            User              @relation(fields: [user_id], references: [id])
-  user_id           String            @unique
-  specialization    Specialization    @relation(fields: [specialization_id], references: [id])
-  specialization_id String
-  qualification     String
-  available_doctors AvailableDoctor[]
+  id               String            @id @default(uuid())
+  doctor           User              @relation(fields: [userId], references: [id])
+  userId           String            @unique @map("user_id")
+  specialization   Specialization    @relation(fields: [specializationId], references: [id])
+  specializationId String            @map("specialization_id")
+  qualification    String
+  availableDoctors AvailableDoctor[]
 
-  created_at DateTime @default(now()) @map("created_at")
-  updated_at DateTime @updatedAt @map("updated_at")
+  createdAt DateTime @default(now()) @map("createdAt")
+  updatedAt DateTime @updatedAt @map("updatedAt")
 
   @@map("doctors")
 }
 
 model Patient {
-  id                String        @id @default(uuid())
-  patient           User          @relation(fields: [user_id], references: [id])
-  user_id           String        @unique
-  medical_history   String
-  emergency_contact String
-  appointments      Appointment[]
+  id               String        @id @default(uuid())
+  patient          User          @relation(fields: [userId], references: [id])
+  userId           String        @unique @map("user_id")
+  medicalHistory   String        @map("medical_history")
+  emergencyContact String        @map("emergency_contact")
+  appointments     Appointment[]
 
-  created_at DateTime @default(now())
-  updated_at DateTime @updatedAt
+  createdAt DateTime @default(now()) @map("created_at")
+  updatedAt DateTime @updatedAt @map("updated_at")
 
   @@map("patients")
 }
 
 model Admin {
-  id      String @id @default(uuid())
-  user    User   @relation(fields: [user_id], references: [id])
-  user_id String @unique
+  id     String @id @default(uuid())
+  user   User   @relation(fields: [userId], references: [id])
+  userId String @unique @map("user_id")
 
-  created_at DateTime @default(now())
-  updated_at DateTime @updatedAt
+  createdAt DateTime @default(now()) @map("created_at")
+  updatedAt DateTime @updatedAt @map("updated_at")
 
   @@map("admins")
 }
 
 model Profile {
-  id              String  @id @default(uuid())
-  user            User    @relation(fields: [user_id], references: [id])
-  user_id         String  @unique
-  full_name       String
-  profile_picture String
-  address         String
-  date_of_birth   String
-  joining_date    String
-  gender          String
-  profile_status  String?
+  id             String   @id @default(uuid())
+  user           User     @relation(fields: [userId], references: [id])
+  userId         String   @unique @map("user_id")
+  fullName       String   @map("full_name")
+  profilePicture String   @map("profile_picture")
+  address        String
+  dateOfBirth    DateTime @map("date_of_birth")
+  joiningDate    DateTime @map("joining_date")
+  gender         Gender
 
-  created_at DateTime @default(now())
-  updated_at DateTime @updatedAt
+  createdAt DateTime @default(now()) @map("created_at")
+  updatedAt DateTime @updatedAt @map("updated_at")
 
   @@map("profiles")
 }
 
 model Service {
-  id                 String             @id @default(uuid())
-  name               String             @unique
-  description        String
-  specialization     Specialization     @relation(fields: [specialization_id], references: [id])
-  specialization_id  String
-  available_services AvailableService[]
+  id                String             @id @default(uuid())
+  name              String             @unique
+  fees              Int
+  description       String
+  specialization    Specialization     @relation(fields: [specializationId], references: [id])
+  specializationId  String             @map("specialization_id")
+  availableServices AvailableService[]
 
-  created_at DateTime @default(now())
-  updated_at DateTime @updatedAt
+  createdAt DateTime @default(now()) @map("created_at")
+  updatedAt DateTime @updatedAt @map("updated_at")
 
   @@map("services")
 }
 
 model TimeSlot {
-  id                String             @id @default(uuid())
-  start_time        String
-  end_time          String
-  available_doctors AvailableDoctor[]
-  available_service AvailableService[]
+  id               String             @id @default(uuid())
+  startTime        String             @map("start_time")
+  endTime          String             @map("end_time")
+  availableDoctors AvailableDoctor[]
+  availableService AvailableService[]
 
-  created_at DateTime @default(now())
-  updated_at DateTime @updatedAt
+  createdAt DateTime @default(now()) @map("created_at")
+  updatedAt DateTime @updatedAt @map("updated_at")
 
   @@map("time_slots")
 }
 
 model AvailableService {
-  id                  String          @id @default(uuid())
-  available_doctor    AvailableDoctor @relation(fields: [available_doctor_id], references: [id])
-  available_doctor_id String
-  services            Service         @relation(fields: [service_id], references: [id])
-  service_id          String
-  slots               TimeSlot        @relation(fields: [slot_id], references: [id])
-  slot_id             String
-  slot_date           DateTime
-  available_seats     Int
-  is_booked           Boolean         @default(false)
+  id                String          @id @default(uuid())
+  availableDoctor   AvailableDoctor @relation(fields: [availableDoctorId], references: [id])
+  availableDoctorId String          @map("available_doctor_id")
+  services          Service         @relation(fields: [serviceId], references: [id])
+  serviceId         String          @map("service_id")
+  slots             TimeSlot        @relation(fields: [slotId], references: [id])
+  slotId            String          @map("slot_id")
+  slotDate          DateTime        @map("slot_date")
+  availableSeats    Int             @map("available_seats")
+  isBooked          Boolean         @default(false) @map("is_booked")
 
-  created_at DateTime @default(now())
-  updated_at DateTime @updatedAt
+  createdAt DateTime @default(now()) @map("created_at")
+  updatedAt DateTime @updatedAt @map("updated_at")
 
-  @@unique([available_doctor_id, slot_id, slot_date, service_id])
+  @@unique([availableDoctorId, slotId, slotDate, serviceId])
   @@map("available_services")
 }
 
 model AvailableDoctor {
-  id                 String             @id @default(uuid())
-  doctor             Doctor             @relation(fields: [doctor_id], references: [id])
-  doctor_id          String
-  slots              TimeSlot           @relation(fields: [slot_id], references: [id])
-  slot_id            String
-  available_date     DateTime
-  available_services AvailableService[]
+  id                String             @id @default(uuid())
+  doctor            Doctor             @relation(fields: [doctorId], references: [id])
+  doctorId          String             @map("doctor_id")
+  slots             TimeSlot           @relation(fields: [slotId], references: [id])
+  slotId            String
+  availableDate     DateTime           @map("available_date")
+  availableServices AvailableService[]
 
-  created_at DateTime @default(now())
-  updated_at DateTime @updatedAt
+  createdAt DateTime @default(now()) @map("created_at")
+  updatedAt DateTime @updatedAt @map("updated_at")
 
-  @@unique([doctor_id, slot_id, available_date])
-  @@map("available_doctors")
+  @@unique([doctorId, slotId, availableDate])
+  @@map("availableDoctors")
 }
 
 model Appointment {
-  id                   String    @id @default(uuid())
-  patients             Patient   @relation(fields: [patient_id], references: [id])
-  patient_id           String
-  available_service_id String
-  appointment_date     DateTime
-  status               String
-  Payment              Payment[]
+  id                 String            @id @default(uuid())
+  patients           Patient           @relation(fields: [patientId], references: [id])
+  patientId          String            @map("patient_id")
+  availableServiceId String            @map("available_service_id")
+  appointmentDate    DateTime          @map("appointment_date")
+  status             AppointmentStatus @default(SCHEDULED)
+  payments           Payment[]
 
-  created_at DateTime @default(now())
-  updated_at DateTime @updatedAt
+  createdAt DateTime @default(now()) @map("created_at")
+  updatedAt DateTime @updatedAt @map("updated_at")
 
   @@map("appointments")
 }
 
 model Payment {
-  id             String      @id @default(uuid())
-  appointment    Appointment @relation(fields: [appointment_id], references: [id])
-  appointment_id String
-  amount         Int
-  payment_date   String
-  payment_status String
+  id            String        @id @default(uuid())
+  appointment   Appointment   @relation(fields: [appointmentId], references: [id])
+  appointmentId String        @map("appointment_id")
+  amount        Int
+  paymentDate   DateTime      @map("payment_date")
+  paymentStatus PaymentStatus @default(PENDING) @map("payment_status")
 
-  created_at DateTime @default(now())
-  updated_at DateTime @updatedAt
+  createdAt DateTime @default(now()) @map("created_at")
+  updatedAt DateTime @updatedAt @map("updated_at")
 
   @@map("payments")
 }
