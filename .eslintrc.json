@@ -1,7 +1,8 @@
 {
   "env": {
     "browser": true,
-    "es2021": true
+    "es2021": true,
+    "node": true
   },
   "extends": [
     "eslint:recommended",
@@ -16,10 +17,12 @@
   "plugins": ["@typescript-eslint"],
   "rules": {
     "no-unused-vars": "error",
-    "no-unused-expressions": "error",
     "prefer-const": "error",
+    "no-unused-expressions": "error",
+    "no-undef": "error",
     "no-console": "warn",
-    "no-undef": "error"
+    "@typescript-eslint/consistent-type-definitions": ["error", "type"],
+    "@typescript-eslint/explicit-module-boundary-types": "off"
   },
   "globals": {
     "process": "readonly"

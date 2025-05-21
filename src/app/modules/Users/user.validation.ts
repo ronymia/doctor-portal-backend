@@ -1,37 +1,42 @@
-import { z } from "zod";
+import { Gender } from '@prisma/client';
+import { z } from 'zod';
 
+// ADMIN
 const createAdminZodSchema = z.object({
-  body: z.object({
-    full_name: z.string({
-      required_error: "Admin name is required",
+  email: z.string({
+    required_error: 'email is required',
+  }),
+  phoneNumber: z.string({
+    required_error: 'phoneNumber is required',
+  }),
+  password: z
+    .string({
+      required_error: 'password is required',
+    })
+    .optional(),
+  profile: z.object({
+    fullName: z.string({
+      required_error: 'fullName is required',
     }),
-    profile_picture: z.string({
-      required_error: "Admin is required",
+    joiningDate: z.string({
+      required_error: 'joiningDate is required',
+    }),
+    gender: z.enum(Object.values(Gender) as [string, ...string[]], {
+      required_error: 'gender is required',
     }),
     address: z.string({
-      required_error: "Admin is required",
+      required_error: 'address is required',
     }),
-    date_of_birth: z.string({
-      required_error: "Admin is required",
+    dateOfBirth: z.string({
+      required_error: 'dateOfBirth is required',
     }),
-    joining_date: z.string({
-      required_error: "Admin is required",
-    }),
-    gender: z.string({
-      required_error: "Admin is required",
-    }),
-    medical_history: z.string({
-      required_error: "Admin is required",
-    }),
-    emergency_contact: z.string({
-      required_error: "Admin is required",
-    }),
-    profile_status: z.string({
-      required_error: "Admin is required",
+    profilePicture: z.string({
+      required_error: 'profilePicture is required',
     }),
   }),
 });
 
-export const UserValidations = {
+// EXPORT VALIDATION SCHEMAS
+export const UserValidationSchemas = {
   createAdminZodSchema,
 };

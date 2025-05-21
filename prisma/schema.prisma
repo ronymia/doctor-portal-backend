@@ -7,12 +7,12 @@ datasource db {
   url      = env("DATABASE_URL")
 }
 
-enum Role {
-  SUPER_ADMIN
-  ADMIN
-  DOCTOR
-  PATIENT
-}
+// enum Role {
+//   SUPER_ADMIN
+//   ADMIN
+//   DOCTOR
+//   PATIENT
+// }
 
 enum UserAccountStatus {
   ACTIVE // User can log in and use the app
@@ -72,7 +72,7 @@ model User {
   email                   String            @unique
   phoneNumber             String            @unique @map("phone_number")
   password                String
-  role                    Role
+  role                    String
   isPasswordResetRequired Boolean           @default(true) @map("is_password_reset_required")
   status                  UserAccountStatus @default(PENDING_VERIFICATION)
   userPermissions         UserPermission[]
