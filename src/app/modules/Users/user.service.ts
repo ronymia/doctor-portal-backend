@@ -1,51 +1,71 @@
 import httpStatus from 'http-status';
-import { User, Profile, Admin, Doctor, Patient } from '@prisma/client';
+import { User, Profile, Doctor, Patient, Gender } from '@prisma/client';
 import AppError from '../../../errors/AppError';
 import { ENUM_USER_ROLE } from '../../../enums/user';
 import config from '../../../config';
 import { prisma } from '../../../shared/prisma';
 import { PasswordHelpers } from '../../../helpers/passwordHelpers';
+import { IAdminCreate } from './user.interface';
 
 //INSERT TO DATABASE
 const createAdminIntoDB = async (
-  user: User,
-  profile: Profile,
-): Promise<User> => {
-  // SET ROLE
-  user.role = ENUM_USER_ROLE.ADMIN;
+  payload: IAdminCreate,
+): Promise<Partial<User>> => {
+  const { profile } = payload;
 
-  // SET DEFAULT PASSWORD
+  // Use a partial object here, don't force it to be of type `User`
   const result = await prisma.$transaction(async (transactionClient) => {
-    user.password = await PasswordHelpers.passwordHash(
+    const hashedPassword = await PasswordHelpers.passwordHash(
       config.default_admin_pass,
     );
 
     // CREATE USER
     const newUser = await transactionClient.user.create({
-      data: user,
+      data: {
+        email: payload.email,
+        phoneNumber: payload.phoneNumber,
+        password: hashedPassword,
+        role: ENUM_USER_ROLE.ADMIN,
+      },
+      select: {
+        id: true,
+        email: true,
+        phoneNumber: true,
+        role: true,
+        isPasswordResetRequired: true,
+        status: true,
+        createdAt: true,
+        updatedAt: true,
+      },
     });
 
-    //
     if (!newUser) {
       throw new AppError(httpStatus.BAD_REQUEST, 'Failed to create Admin');
     }
 
-    // AUTO INCREMENTED GENERATED ADMIN ID
+    // CREATE ADMIN
     await transactionClient.admin.create({
-      data: { user_id: newUser.id },
+      data: { userId: newUser.id },
     });
 
     // CREATE PROFILE
+    if (!Object.values(Gender).includes(profile.gender as Gender)) {
+      throw new AppError(
+        httpStatus.BAD_REQUEST,
+        `Invalid gender value, allowed only [${Object.values(Gender).join(',')}]`,
+      );
+    }
     const newProfile = await transactionClient.profile.create({
-      data: { ...profile, user_id: newUser.id },
+      data: {
+        ...profile,
+        userId: newUser.id,
+      },
     });
 
-    //
     if (!newProfile) {
-      throw new AppError(httpStatus.BAD_REQUEST, 'Failed to create Profile');
+      throw new AppError(httpStatus.BAD_REQUEST, 'Failed to create admin');
     }
 
-    // RETURN
     return { ...newUser, ...newProfile };
   });
 

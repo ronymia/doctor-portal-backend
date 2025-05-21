@@ -1,7 +1,12 @@
-import express from 'express';
+import express, { NextFunction, Request, Response } from 'express';
 import { UserControllers } from './user.controller';
 import auth from '../../middlewares/auth';
 import { ENUM_USER_ROLE } from '../../../enums/user';
+import validateRequest from '../../middlewares/validateRequest';
+import { UserValidationSchemas } from './user.validation';
+import { FileUploadHelper } from '../../../shared/fileUploadHelper';
+import { z } from 'zod';
+import { IUploadFille } from '../../../interfaces/file';
 
 const router = express.Router();
 
@@ -25,7 +30,18 @@ const router = express.Router();
 
 router
   .route('/create-admin')
-  .post(auth(ENUM_USER_ROLE.SUPER_ADMIN), UserControllers.createAdmin);
+  .post(
+    auth(ENUM_USER_ROLE.SUPER_ADMIN),
+    FileUploadHelper.upload.single('file'),
+    (req: Request, res: Response, next: NextFunction) => {
+      req.body = UserValidationSchemas.createAdminZodSchema.parse(
+        JSON.parse(req.body.data),
+      );
+      req.body.profile.profilePicture = req?.file?.path as IUploadFille['path'];
+      // console.log({ rowData: req.body });
+      return UserControllers.createAdmin(req, res, next);
+    },
+  );
 
 /***************
  * @api {post} /products

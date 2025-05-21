@@ -1,3 +1,5 @@
+import { Gender } from '@prisma/client';
+
 export type TUserFilters = {
   searchTerm?: string;
   email?: string;
@@ -7,8 +9,22 @@ export type TUserFilters = {
 };
 
 export type TUserFilterableFields =
-  | "searchTerm"
-  | "email"
-  | "phone_number"
-  | "role"
-  | "status";
+  | 'searchTerm'
+  | 'email'
+  | 'phone_number'
+  | 'role'
+  | 'status';
+
+export type IAdminCreate = {
+  email: string;
+  phoneNumber: string;
+  password?: string;
+  profile: {
+    fullName: string;
+    joiningDate: string;
+    gender: Gender;
+    address: string;
+    dateOfBirth: string;
+    profilePicture: string;
+  };
+};
