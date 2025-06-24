@@ -46,6 +46,18 @@ enum Gender {
   OTHER
 }
 
+model ErrorLog {
+  id         Int      @id @default(autoincrement())
+  userId     String?
+  token      String?
+  ipAddress  String?
+  errorStack String
+  payload    Json?
+  timestamp  DateTime @default(now())
+
+  @@map("error_logs")
+}
+
 model Permission {
   id              String           @id @default(uuid())
   name            String           @unique
@@ -89,7 +101,7 @@ model User {
 
 model Doctor {
   id               String            @id @default(uuid())
-  doctorId         String            @unique @map("doctor_id")
+  // doctorId         String            @unique @map("doctor_id")
   doctor           User              @relation(fields: [userId], references: [id])
   userId           String            @unique @map("user_id")
   specialization   Specialization    @relation(fields: [specializationId], references: [id])
@@ -105,7 +117,7 @@ model Doctor {
 
 model Patient {
   id               String        @id @default(uuid())
-  patientId        String        @unique @map("patient_id")
+  // patientId        String        @unique @map("patient_id")
   patient          User          @relation(fields: [userId], references: [id])
   userId           String        @unique @map("user_id")
   medicalHistory   String        @map("medical_history")
@@ -119,10 +131,10 @@ model Patient {
 }
 
 model Admin {
-  id      String @id @default(uuid())
-  adminId String @unique @map("admin_id")
-  user    User   @relation(fields: [userId], references: [id])
-  userId  String @unique @map("user_id")
+  id     String @id @default(uuid())
+  // adminId String @unique @map("admin_id")
+  user   User   @relation(fields: [userId], references: [id])
+  userId String @unique @map("user_id")
 
   createdAt DateTime @default(now()) @map("created_at")
   updatedAt DateTime @updatedAt @map("updated_at")
