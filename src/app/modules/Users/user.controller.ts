@@ -5,6 +5,7 @@ import catchAsync from '../../../shared/catchAsync';
 import sendResponse from '../../../shared/sendResponse';
 import { UserServices } from './user.service';
 import { PasswordHelpers } from '../../../helpers/passwordHelpers';
+import config from '../../../config';
 
 // CREATE CONTROLLER FN
 const createAdmin: RequestHandler = catchAsync(
@@ -29,6 +30,10 @@ const createDoctor: RequestHandler = catchAsync(
     if ('password' in payloadData) {
       payloadData.password = await PasswordHelpers.passwordHash(
         payloadData.password,
+      );
+    } else {
+      payloadData.password = await PasswordHelpers.passwordHash(
+        config.default_doctor_pass,
       );
     }
 

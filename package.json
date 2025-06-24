@@ -8,7 +8,9 @@
   "license": "MIT",
   "private": false,
   "scripts": {
-    "start": "ts-node-dev --respawn --transpile-only src/server.ts"
+    "start": "nodemon --watch src/**/*.ts --ignore src/**/*.test.ts --exec ts-node-dev --respawn --transpile-only src/server.ts",
+    "build": "tsc",
+    "postinstall": "prisma generate"
   },
   "dependencies": {
     "@prisma/client": "^5.17.0",
@@ -39,6 +41,7 @@
     "eslint": "^8.53.0",
     "eslint-config-prettier": "^9.0.0",
     "husky": "^8.0.0",
+    "nodemon": "^3.1.10",
     "prettier": "^3.1.0",
     "prisma": "^5.17.0",
     "ts-node": "^10.9.2",
