@@ -72,14 +72,21 @@ const getAllSpecializationsFromDB = async (
     : {};
 
   //Database
-  const result = await prisma.specialization.findMany({
-    skip,
-    take: limit,
-    orderBy: {
-      [sortBy]: sortOrder,
-    },
-    where: whereCondition,
-  });
+  const result = limit
+    ? await prisma.specialization.findMany({
+        skip,
+        take: limit,
+        orderBy: {
+          [sortBy]: sortOrder,
+        },
+        where: whereCondition,
+      })
+    : await prisma.specialization.findMany({
+        orderBy: {
+          [sortBy]: sortOrder,
+        },
+        where: whereCondition,
+      });
 
   // total count
   const totalCount = await prisma.specialization.count();
@@ -117,6 +124,12 @@ const updateSpecializationIntoDB = async (
 const deleteSpecializationFromDB = async (
   id: string,
 ): Promise<Specialization | null> => {
+  const isExist = await prisma.specialization.findUnique({
+    where: { id },
+  });
+  if (!isExist) {
+    throw new AppError(httpStatus.NOT_FOUND, 'Specialization not found');
+  }
   const result = await prisma.specialization.delete({
     where: { id },
   });

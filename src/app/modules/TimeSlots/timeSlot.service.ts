@@ -69,14 +69,21 @@ const getAllTimeSlotsFromDB = async (
     : {};
 
   //Database
-  const result = await prisma.timeSlot.findMany({
-    skip,
-    take: limit,
-    orderBy: {
-      [sortBy]: sortOrder,
-    },
-    where: whereCondition,
-  });
+  const result = limit
+    ? await prisma.timeSlot.findMany({
+        skip,
+        take: limit,
+        orderBy: {
+          [sortBy]: sortOrder,
+        },
+        where: whereCondition,
+      })
+    : await prisma.timeSlot.findMany({
+        orderBy: {
+          [sortBy]: sortOrder,
+        },
+        where: whereCondition,
+      });
 
   // total count
   const totalCount = await prisma.timeSlot.count();

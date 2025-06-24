@@ -4,6 +4,7 @@ import { Request, RequestHandler, Response } from 'express';
 import catchAsync from '../../../shared/catchAsync';
 import sendResponse from '../../../shared/sendResponse';
 import { UserServices } from './user.service';
+import { PasswordHelpers } from '../../../helpers/passwordHelpers';
 
 // CREATE CONTROLLER FN
 const createAdmin: RequestHandler = catchAsync(
@@ -23,18 +24,22 @@ const createAdmin: RequestHandler = catchAsync(
 // CREATE CONTROLLER FN
 const createDoctor: RequestHandler = catchAsync(
   async (req: Request, res: Response) => {
-    const { email, phone_number, ...profile } = req.body; //COPY
+    const { ...payloadData } = req.body; //COPY
+
+    if ('password' in payloadData) {
+      payloadData.password = await PasswordHelpers.passwordHash(
+        payloadData.password,
+      );
+    }
+
     //SEND DATA TO BUSINESS LOGIC
-    const result = await UserServices.createDoctorIntoDB(
-      { email, phone_number },
-      profile,
-    );
+    const result = await UserServices.createDoctorIntoDB(payloadData);
 
     //SEND RESPONSE
     sendResponse<User>(res, {
       statusCode: httpStatus.CREATED,
       success: true,
-      message: 'Admin created Successfully',
+      message: 'Doctor created Successfully',
       data: result,
     });
   },

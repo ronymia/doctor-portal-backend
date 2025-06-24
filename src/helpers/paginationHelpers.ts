@@ -15,10 +15,10 @@ type TPaginationResult = {
 
 const calculatePagination = (options: TOptions): TPaginationResult => {
   const page = Number(options.page) || 1;
-  const limit = Number(options.limit) || 10;
-  const skip = (page - 1) * limit;
+  const limit = Number(options.limit);
+  const skip = limit ? (page - 1) * limit : 0;
 
-  const sortBy = options.sortBy || 'created_at';
+  const sortBy = options.sortBy || 'createdAt';
   const sortOrder = options.sortOrder || 'desc';
 
   return {

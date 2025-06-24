@@ -27,6 +27,31 @@ const router = express.Router();
 
 router
   .route('/')
+  .get(
+    auth(ENUM_USER_ROLE.SUPER_ADMIN, ENUM_USER_ROLE.ADMIN),
+    SpecializationControllers.getAllSpecializations,
+  );
+
+/***************
+ * @api {post} /products
+ * @apiDescription create a new product
+ * @apiPermission  superAdmin , admin
+ *
+ * @apiHeader {string} => user's access token
+ * @apiHeaderExample {json} Header-Example:
+ *
+ * @apiQuery {page}   [page=1] => List pages
+ * @apiQuery {Number{1-100}}    [Limit=10] per page
+ *
+ *@apiSuccess {Object[]} Response=> data:product object
+ *
+ *@apiError {Unauthorized 401} => only authorized users can access this
+ *@apiError {forbidden 403} => only only can access this
+ *
+ *********************/
+
+router
+  .route('/')
   .post(
     auth(ENUM_USER_ROLE.SUPER_ADMIN, ENUM_USER_ROLE.ADMIN),
     validateRequest(SpecializationValidations.createSpecializationZodSchema),
@@ -56,31 +81,6 @@ router
   .get(
     auth(ENUM_USER_ROLE.SUPER_ADMIN, ENUM_USER_ROLE.ADMIN),
     SpecializationControllers.getSpecializationById,
-  );
-
-/***************
- * @api {post} /products
- * @apiDescription create a new product
- * @apiPermission  superAdmin , admin
- *
- * @apiHeader {string} => user's access token
- * @apiHeaderExample {json} Header-Example:
- *
- * @apiQuery {page}   [page=1] => List pages
- * @apiQuery {Number{1-100}}    [Limit=10] per page
- *
- *@apiSuccess {Object[]} Response=> data:product object
- *
- *@apiError {Unauthorized 401} => only authorized users can access this
- *@apiError {forbidden 403} => only only can access this
- *
- *********************/
-
-router
-  .route('/')
-  .get(
-    auth(ENUM_USER_ROLE.SUPER_ADMIN, ENUM_USER_ROLE.ADMIN),
-    SpecializationControllers.getAllSpecializations,
   );
 
 /***************
