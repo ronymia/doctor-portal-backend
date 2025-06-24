@@ -1,4 +1,4 @@
-import { Gender } from '@prisma/client';
+import { Gender, UserAccountStatus } from '@prisma/client';
 
 export type TUserFilters = {
   searchTerm?: string;
@@ -15,16 +15,33 @@ export type TUserFilterableFields =
   | 'role'
   | 'status';
 
-export type IAdminCreate = {
+export type IUser = {
   email: string;
   phoneNumber: string;
   password?: string;
-  profile: {
-    fullName: string;
-    joiningDate: string;
-    gender: Gender;
-    address: string;
-    dateOfBirth: string;
-    profilePicture: string;
-  };
+  role: string;
+  status?: UserAccountStatus;
 };
+
+export type IProfile = {
+  userId: string;
+  fullName: string;
+  joiningDate: string;
+  gender: Gender;
+  address: string;
+  dateOfBirth: string;
+  profilePicture: string;
+};
+
+export type IAdminCreate = {
+  profile: IProfile;
+} & IUser;
+
+export type IDoctorCreate = {
+  profile: IProfile;
+  doctor: {
+    userId: string;
+    specializationId: string;
+    qualification: string;
+  };
+} & IUser;

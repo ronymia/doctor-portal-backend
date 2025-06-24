@@ -10,7 +10,6 @@ import { PasswordHelpers } from '../../../helpers/passwordHelpers';
 import { JwtHelpers } from '../../../helpers/jwtHelpers';
 import config from '../../../config';
 import { prisma } from '../../../shared/prisma';
-import { ENUM_USER_ROLE } from '../../../enums/user';
 
 // LOGIN USER
 const loginUser = async (payload: TLoginUser): Promise<TLoginUserResponse> => {

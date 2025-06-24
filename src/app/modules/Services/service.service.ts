@@ -69,14 +69,21 @@ const getAllServicesFromDB = async (
     : {};
 
   //Database
-  const result = await prisma.service.findMany({
-    skip,
-    take: limit,
-    orderBy: {
-      [sortBy]: sortOrder,
-    },
-    where: whereCondition,
-  });
+  const result = limit
+    ? await prisma.service.findMany({
+        skip,
+        take: limit,
+        orderBy: {
+          [sortBy]: sortOrder,
+        },
+        where: whereCondition,
+      })
+    : await prisma.service.findMany({
+        orderBy: {
+          [sortBy]: sortOrder,
+        },
+        where: whereCondition,
+      });
 
   // total count
   const totalCount = await prisma.service.count();

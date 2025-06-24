@@ -3,10 +3,10 @@ import { z } from 'zod';
 // CREATE
 const createTimeSlotZodSchema = z.object({
   body: z.object({
-    start_time: z.string({
+    startTime: z.string({
       required_error: 'Start Time is required',
     }),
-    end_time: z.string({
+    endTime: z.string({
       required_error: 'End Time is required',
     }),
   }),
@@ -15,12 +15,12 @@ const createTimeSlotZodSchema = z.object({
 // UPDATE
 const updateTimeSlotZodSchema = z.object({
   body: z.object({
-    start_time: z
+    startTime: z
       .string({
         required_error: 'Start Time is required',
       })
       .optional(),
-    end_time: z
+    endTime: z
       .string({
         required_error: 'End Time is required',
       })

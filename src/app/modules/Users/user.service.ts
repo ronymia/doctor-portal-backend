@@ -1,11 +1,12 @@
 import httpStatus from 'http-status';
-import { User, Profile, Doctor, Patient, Gender } from '@prisma/client';
+import { User, Profile, Patient, Gender } from '@prisma/client';
 import AppError from '../../../errors/AppError';
 import { ENUM_USER_ROLE } from '../../../enums/user';
 import config from '../../../config';
 import { prisma } from '../../../shared/prisma';
 import { PasswordHelpers } from '../../../helpers/passwordHelpers';
-import { IAdminCreate } from './user.interface';
+import { IAdminCreate, IDoctorCreate } from './user.interface';
+import { generateDoctorId } from './user.utils';
 
 //INSERT TO DATABASE
 const createAdminIntoDB = async (
@@ -27,20 +28,15 @@ const createAdminIntoDB = async (
         password: hashedPassword,
         role: ENUM_USER_ROLE.ADMIN,
       },
-      select: {
-        id: true,
-        email: true,
-        phoneNumber: true,
-        role: true,
-        isPasswordResetRequired: true,
-        status: true,
-        createdAt: true,
-        updatedAt: true,
-      },
     });
 
     if (!newUser) {
       throw new AppError(httpStatus.BAD_REQUEST, 'Failed to create Admin');
+    }
+
+    // Remove password from the response
+    if ('password' in newUser) {
+      delete (newUser as Partial<User>).password;
     }
 
     // CREATE ADMIN
@@ -73,59 +69,60 @@ const createAdminIntoDB = async (
 };
 
 //INSERT TO DATABASE
-const createDoctorIntoDB = async (
-  user: User,
-  profile: Profile,
-): Promise<User> => {
+const createDoctorIntoDB = async (payload: IDoctorCreate): Promise<User> => {
+  const { doctor, profile, ...user } = payload;
   // SET ROLE
   user.role = ENUM_USER_ROLE.DOCTOR;
 
   // SET DEFAULT PASSWORD
-  user.password = config.default_admin_pass;
+  if (!user?.password) {
+    user.password = config.default_admin_pass ?? '';
+  }
 
   //DEFINE USER
-  let newUserData = null;
 
-  try {
-    // DOCTOR TABLE DATA
-    let doctor: Doctor = {};
-
+  const result = await prisma.$transaction(async (transactionClient) => {
     // AUTO INCREMENTED GENERATED DOCTOR ID
-    const doctorId = await generateAdminId();
+    const doctorId = await generateDoctorId();
+    console.log({ doctorId });
+
+    //CREATE USER
+    const newUser = await transactionClient.user.create({
+      data: user as User,
+    });
+
+    if (!newUser) {
+      throw new AppError(httpStatus.BAD_REQUEST, 'Failed yo create Doctor');
+    }
+
     // SET DOCTOR ID AS REFERENCE IN USER , DOCTOR AND PROFILE TABLE
-    user.user_id = doctorId;
-    doctor.user_id = doctorId;
-    profile.user_id = doctorId;
 
     // CREATE DOCTOR
-    const newDoctor = await prisma.doctor.create({
+    doctor.userId = newUser.id;
+    const newDoctor = await transactionClient.doctor.create({
       data: doctor,
     });
     if (!newDoctor) {
       throw new AppError(httpStatus.BAD_REQUEST, 'Failed yo create Doctor');
     }
-
     //CREATE PROFILE
-    const newProfile = await prisma.profile.create({
+    profile.userId = newUser.id;
+    const newProfile = await transactionClient.profile.create({
       data: profile,
     });
     if (!newProfile) {
       throw new AppError(httpStatus.BAD_REQUEST, 'Failed yo create Doctor');
     }
-    //CREATE USER
-    const newUser = await prisma.user.create({
-      data: user,
-      include: {
-        profile: true,
-        doctor: true,
-      },
-    });
-    if (!newUser) {
-      throw new AppError(httpStatus.BAD_REQUEST, 'Failed yo create Doctor');
-    }
-  } catch (error) {}
 
-  return newUserData;
+    if ('password' in newUser) {
+      // Remove password from the response
+      delete (newUser as Partial<User>)?.password;
+    }
+
+    return { ...newUser, ...newProfile, ...newDoctor };
+  });
+
+  return result;
 };
 //INSERT TO DATABASE
 const createPatientIntoDB = async (

@@ -1,5 +1,5 @@
 import httpStatus from 'http-status';
-import { Specialization, Prisma, Appointment } from '@prisma/client';
+import { Prisma, Appointment } from '@prisma/client';
 import { prisma } from '../../../shared/prisma';
 import { TPaginationOptions } from '../../../interfaces/pagination';
 import { paginationHelpers } from '../../../helpers/paginationHelpers';
