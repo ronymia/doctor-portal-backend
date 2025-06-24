@@ -77,10 +77,13 @@ const createDoctorIntoDB = async (payload: IDoctorCreate): Promise<User> => {
   // SET DEFAULT PASSWORD
   if (!user?.password) {
     user.password = config.default_admin_pass ?? '';
+  } else {
+    user.password = await PasswordHelpers.passwordHash(
+      config.default_admin_pass as string,
+    );
   }
 
   //DEFINE USER
-
   const result = await prisma.$transaction(async (transactionClient) => {
     // AUTO INCREMENTED GENERATED DOCTOR ID
     const doctorId = await generateDoctorId();
