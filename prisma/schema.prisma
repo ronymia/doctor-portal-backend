@@ -87,21 +87,9 @@ model User {
   @@map("users")
 }
 
-model Specialization {
-  id          String    @id @default(uuid())
-  name        String    @unique
-  description String?
-  doctors     Doctor[]
-  services    Service[]
-
-  createdAt DateTime @default(now()) @map("created_at")
-  updatedAt DateTime @updatedAt @map("updated_at")
-
-  @@map("specializations")
-}
-
 model Doctor {
   id               String            @id @default(uuid())
+  doctorId         String            @unique @map("doctor_id")
   doctor           User              @relation(fields: [userId], references: [id])
   userId           String            @unique @map("user_id")
   specialization   Specialization    @relation(fields: [specializationId], references: [id])
@@ -117,6 +105,7 @@ model Doctor {
 
 model Patient {
   id               String        @id @default(uuid())
+  patientId        String        @unique @map("patient_id")
   patient          User          @relation(fields: [userId], references: [id])
   userId           String        @unique @map("user_id")
   medicalHistory   String        @map("medical_history")
@@ -130,9 +119,10 @@ model Patient {
 }
 
 model Admin {
-  id     String @id @default(uuid())
-  user   User   @relation(fields: [userId], references: [id])
-  userId String @unique @map("user_id")
+  id      String @id @default(uuid())
+  adminId String @unique @map("admin_id")
+  user    User   @relation(fields: [userId], references: [id])
+  userId  String @unique @map("user_id")
 
   createdAt DateTime @default(now()) @map("created_at")
   updatedAt DateTime @updatedAt @map("updated_at")
@@ -145,7 +135,7 @@ model Profile {
   user           User     @relation(fields: [userId], references: [id])
   userId         String   @unique @map("user_id")
   fullName       String   @map("full_name")
-  profilePicture String   @map("profile_picture")
+  profilePicture String?  @map("profile_picture")
   address        String
   dateOfBirth    DateTime @map("date_of_birth")
   joiningDate    DateTime @map("joining_date")
@@ -155,6 +145,19 @@ model Profile {
   updatedAt DateTime @updatedAt @map("updated_at")
 
   @@map("profiles")
+}
+
+model Specialization {
+  id          String    @id @default(uuid())
+  name        String    @unique
+  description String?
+  doctors     Doctor[]
+  services    Service[]
+
+  createdAt DateTime @default(now()) @map("created_at")
+  updatedAt DateTime @updatedAt @map("updated_at")
+
+  @@map("specializations")
 }
 
 model Service {
@@ -174,8 +177,8 @@ model Service {
 
 model TimeSlot {
   id               String             @id @default(uuid())
-  startTime        String             @map("start_time")
-  endTime          String             @map("end_time")
+  startTime        DateTime           @map("start_time")
+  endTime          DateTime           @map("end_time")
   availableDoctors AvailableDoctor[]
   availableService AvailableService[]
 
