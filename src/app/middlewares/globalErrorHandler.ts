@@ -8,14 +8,23 @@ import handleZodError from '../../errors/handleZodError';
 import { Prisma } from '@prisma/client';
 import handleValidationError from '../../errors/handleValidationError';
 import handleClientKnownError from '../../errors/handleClientKnownError';
+import { logError } from '../../shared/logError';
 
-const globalErrorHandler: ErrorRequestHandler = (
+const globalErrorHandler: ErrorRequestHandler = async (
   err,
   req: Request,
   res: Response,
   // eslint-disable-next-line @typescript-eslint/no-unused-vars, no-unused-vars
   next: NextFunction,
 ) => {
+  const token = req.headers['authorization'] || null;
+
+  // Extract user ID from auth middleware or token (custom logic)
+  const userId = req.user?.id || null;
+
+  const ipAddress =
+    req.headers['x-forwarded-for']?.toString().split(',')[0] ||
+    req.socket.remoteAddress;
   //Debug
   if (config.node_env === 'development') {
     // eslint-disable-next-line no-console
@@ -78,10 +87,25 @@ const globalErrorHandler: ErrorRequestHandler = (
     ];
   }
 
+  // LOG ERROR INTO DATABASE
+  const errorLogs = await logError({
+    token: typeof token === 'string' ? token : undefined,
+    userId: typeof userId === 'string' ? userId : undefined,
+    ipAddress,
+    error: err,
+    payload: {
+      method: req.method,
+      url: req.originalUrl,
+      body: req.body,
+      query: req.query,
+      params: req.params,
+    },
+  });
+
   //ultimate return
   return res.status(statusCode).json({
     success: false,
-    message,
+    message: ` Error ID : ${errorLogs?.id} - ${message}`,
     errorSources,
     err,
     stack: config.node_env === 'development' ? err?.stack : null,

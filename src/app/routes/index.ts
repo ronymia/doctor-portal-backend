@@ -7,6 +7,7 @@ import { ServiceRoutes } from '../modules/Services/service.route';
 import { TimeSlotRoutes } from '../modules/TimeSlots/timeSlot.route';
 import { AvailableServiceRoutes } from '../modules/AvailableServices/availableService.route';
 import { AppointmentRoutes } from '../modules/Appointments/appointment.route';
+import { errorRoutes } from '../modules/ErrorLog/errorLog.route';
 
 const router = express.Router();
 
@@ -15,6 +16,10 @@ const moduleRoutes = [
   {
     path: '/v1.0/auth',
     route: AuthRoutes,
+  },
+  {
+    path: '/error-logs',
+    route: errorRoutes,
   },
   {
     path: '/v1.0/users',
