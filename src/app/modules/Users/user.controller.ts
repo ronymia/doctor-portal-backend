@@ -10,8 +10,20 @@ import config from '../../../config';
 // CREATE CONTROLLER FN
 const createAdmin: RequestHandler = catchAsync(
   async (req: Request, res: Response) => {
+    const { ...payloadData } = req.body; //COPY
+
+    if ('password' in payloadData) {
+      payloadData.password = await PasswordHelpers.passwordHash(
+        payloadData.password,
+      );
+    } else {
+      payloadData.password = await PasswordHelpers.passwordHash(
+        config.default_doctor_pass,
+      );
+    }
+
     //SEND DATA TO BUSINESS LOGIC
-    const result = await UserServices.createAdminIntoDB(req.body);
+    const result = await UserServices.createAdminIntoDB(payloadData);
 
     //SEND RESPONSE
     sendResponse<Partial<User>>(res, {
@@ -52,18 +64,25 @@ const createDoctor: RequestHandler = catchAsync(
 // CREATE CONTROLLER FN
 const createPatient: RequestHandler = catchAsync(
   async (req: Request, res: Response) => {
-    const { email, phone_number, ...profile } = req.body; //COPY
+    const { ...payloadData } = req.body; //COPY
+
+    if ('password' in payloadData) {
+      payloadData.password = await PasswordHelpers.passwordHash(
+        payloadData.password,
+      );
+    } else {
+      payloadData.password = await PasswordHelpers.passwordHash(
+        config.default_doctor_pass,
+      );
+    }
     //SEND DATA TO BUSINESS LOGIC
-    const result = await UserServices.createPatientIntoDB(
-      { email, phone_number },
-      profile,
-    );
+    const result = await UserServices.createPatientIntoDB(payloadData);
 
     //SEND RESPONSE
     sendResponse<User>(res, {
       statusCode: httpStatus.CREATED,
       success: true,
-      message: 'Admin created Successfully',
+      message: 'Patient created Successfully',
       data: result,
     });
   },

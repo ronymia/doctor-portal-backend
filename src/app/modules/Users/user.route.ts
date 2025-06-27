@@ -60,7 +60,20 @@ router
  *@apiError {forbidden 403} => only only can access this
  *
  *********************/
-router.post('/create-doctor', UserControllers.createDoctor);
+// router.post('/create-doctor', UserControllers.createDoctor);
+router.post(
+  '/create-doctor',
+  auth(ENUM_USER_ROLE.SUPER_ADMIN, ENUM_USER_ROLE.ADMIN),
+  FileUploadHelper.upload.single('file'),
+  (req: Request, res: Response, next: NextFunction) => {
+    req.body = UserValidationSchemas.createDoctorZodSchema.parse(
+      JSON.parse(req.body.data),
+    );
+    req.body.profile.profilePicture = req?.file?.path as IUploadFille['path'];
+    // console.log({ rowData: req.body });
+    return UserControllers.createDoctor(req, res, next);
+  },
+);
 
 /***************
  * @api {post} /products
@@ -79,6 +92,19 @@ router.post('/create-doctor', UserControllers.createDoctor);
  *@apiError {forbidden 403} => only only can access this
  *
  *********************/
-router.post('/create-patient', UserControllers.createPatient);
+// router.post('/create-patient', UserControllers.createPatient);
+router.post(
+  '/create-patient',
+  auth(ENUM_USER_ROLE.SUPER_ADMIN, ENUM_USER_ROLE.ADMIN),
+  FileUploadHelper.upload.single('file'),
+  (req: Request, res: Response, next: NextFunction) => {
+    req.body = UserValidationSchemas.createPatientZodSchema.parse(
+      JSON.parse(req.body.data),
+    );
+    req.body.profile.profilePicture = req?.file?.path as IUploadFille['path'];
+    // console.log({ rowData: req.body });
+    return UserControllers.createPatient(req, res, next);
+  },
+);
 
 export const UserRoutes = router;
