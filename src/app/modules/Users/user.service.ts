@@ -1,12 +1,18 @@
 import httpStatus from 'http-status';
-import { User, Profile, Patient, Gender, Doctor } from '@prisma/client';
+import {
+  User,
+  Profile,
+  Patient,
+  Gender,
+  Doctor,
+  UserAccountStatus,
+} from '@prisma/client';
 import AppError from '../../../errors/AppError';
 import { ENUM_USER_ROLE } from '../../../enums/user';
 import config from '../../../config';
 import { prisma } from '../../../shared/prisma';
-import { PasswordHelpers } from '../../../helpers/passwordHelpers';
-import { IAdminCreate, IDoctorCreate } from './user.interface';
-import { generateDoctorId } from './user.utils';
+import { IAdminCreate, IDoctorCreate, IPatientCreate } from './user.interface';
+import { logger } from '../../../shared/logger';
 
 //INSERT TO DATABASE
 const createAdminIntoDB = async (
@@ -16,16 +22,12 @@ const createAdminIntoDB = async (
 
   // Use a partial object here, don't force it to be of type `User`
   const result = await prisma.$transaction(async (transactionClient) => {
-    const hashedPassword = await PasswordHelpers.passwordHash(
-      config.default_admin_pass,
-    );
-
     // CREATE USER
     const newUser = await transactionClient.user.create({
       data: {
         email: payload.email,
         phoneNumber: payload.phoneNumber,
-        password: hashedPassword,
+        password: payload?.password as string,
         role: ENUM_USER_ROLE.ADMIN,
       },
     });
@@ -77,8 +79,8 @@ const createDoctorIntoDB = async (payload: IDoctorCreate): Promise<User> => {
   //DEFINE USER
   const result = await prisma.$transaction(async (transactionClient) => {
     // AUTO INCREMENTED GENERATED DOCTOR ID
-    const doctorId = await generateDoctorId();
-    console.log({ doctorId });
+    // const doctorId = await generateDoctorId();
+    // console.log({ doctorId });
 
     //CREATE USER
     const newUser = await transactionClient.user.create({
@@ -118,59 +120,46 @@ const createDoctorIntoDB = async (payload: IDoctorCreate): Promise<User> => {
   return result;
 };
 //INSERT TO DATABASE
-const createPatientIntoDB = async (
-  user: User,
-  profile: Profile,
-): Promise<User> => {
+const createPatientIntoDB = async (payload: IPatientCreate): Promise<User> => {
   // SET ROLE
-  user.role = ENUM_USER_ROLE.PATIENT;
+  const { profile, patient, ...user } = payload;
 
-  // SET DEFAULT PASSWORD
-  user.password = config.default_admin_pass;
-
-  //DEFINE USER
-  let newUserData = null;
-
-  try {
-    // ADMIN TABLE DATA
-    let patient: Patient = {};
-
-    // AUTO INCREMENTED GENERATED ADMIN ID
-    const patientId = await generateAdminId();
-    // SET PATIENT ID AS REFERENCE IN USER , PATIENT AND PROFILE TABLE
-    user.user_id = patientId;
-    patient.user_id = patientId;
-    profile.user_id = patientId;
+  const result = await prisma.$transaction(async (transactionClient) => {
+    // CREATE USER
+    const newUser = await transactionClient.user.create({
+      data: { ...user, role: ENUM_USER_ROLE.PATIENT } as User,
+    });
+    if (!newUser) {
+      throw new AppError(httpStatus.BAD_REQUEST, 'Failed yo create Patient');
+    }
 
     // CREATE PATIENT
-    const newPatient = await prisma.patient.create({
-      data: patient,
+    patient.userId = newUser.id;
+    const newPatient = await transactionClient.patient.create({
+      data: patient as Patient,
     });
     if (!newPatient) {
       throw new AppError(httpStatus.BAD_REQUEST, 'Failed yo create Patient');
     }
 
     //CREATE PROFILE
-    const newProfile = await prisma.profile.create({
+    profile.userId = newUser.id;
+    const newProfile = await transactionClient.profile.create({
       data: profile,
     });
     if (!newProfile) {
       throw new AppError(httpStatus.BAD_REQUEST, 'Failed yo create Patient');
     }
-    //CREATE USER
-    const newUser = await prisma.user.create({
-      data: user,
-      include: {
-        profile: true,
-        patient: true,
-      },
-    });
-    if (!newUser) {
-      throw new AppError(httpStatus.BAD_REQUEST, 'Failed yo create Patient');
+    // Remove password from the response
+    if ('password' in newUser) {
+      // Remove password from the response
+      delete (newUser as Partial<User>)?.password;
     }
-  } catch (error) {}
+    return { ...newUser, ...newProfile, ...newPatient };
+  });
 
-  return newUserData;
+  logger.info(result);
+  return result;
 };
 
 export const UserServices = {

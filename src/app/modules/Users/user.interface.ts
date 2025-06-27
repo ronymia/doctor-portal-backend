@@ -45,3 +45,11 @@ export type IDoctorCreate = {
     qualification: string;
   };
 } & IUser;
+export type IPatientCreate = {
+  profile: IProfile;
+  patient: {
+    userId: string;
+    medicalHistory: string;
+    emergencyContact: string;
+  };
+} & IUser;
