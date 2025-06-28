@@ -5,10 +5,10 @@ import { ENUM_USER_ROLE } from '../../../enums/user';
 
 const router = express.Router();
 
-router.route('/').post(
+router.route('/book-appointment').post(
   auth(ENUM_USER_ROLE.SUPER_ADMIN, ENUM_USER_ROLE.ADMIN),
   // validateRequest(AppointmentControllers.createAppointmentZodSchema),
-  AppointmentControllers.createAppointment,
+  AppointmentControllers.bookAppointmentIntoDB,
 );
 router.route('/').get(
   auth(ENUM_USER_ROLE.SUPER_ADMIN, ENUM_USER_ROLE.ADMIN),

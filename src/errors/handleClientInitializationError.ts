@@ -1,13 +1,15 @@
 import { Prisma } from '@prisma/client';
 import httpStatus from 'http-status';
 import { TErrorSources } from '../interfaces/error';
+import { errorLogger } from '../shared/logger';
 
-const handleClientKnownError = (
-  error: Prisma.PrismaClientKnownRequestError,
+const handleClientInitializationError = (
+  error: Prisma.PrismaClientInitializationError,
 ) => {
   // ERROR STATUS CODE
   const statusCode = httpStatus.NOT_ACCEPTABLE;
 
+  errorLogger.error(`🐱‍🏍 handleClientInitializationError ~~`, error);
   console.log({ error });
 
   // ERROR MESSAGES
@@ -16,16 +18,16 @@ const handleClientKnownError = (
   // ERROR SOURCE
   const errorSources: TErrorSources = [
     {
-      path: error?.meta?.target?.join(','),
+      path: String(error?.errorCode),
       message: errorMessages[errorMessages.length - 1],
     },
   ];
 
   return {
     statusCode,
-    message: 'Bad Request',
+    message: 'Validation error',
     errorSources,
   };
 };
 
-export default handleClientKnownError;
+export default handleClientInitializationError;

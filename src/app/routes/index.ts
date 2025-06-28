@@ -8,6 +8,9 @@ import { TimeSlotRoutes } from '../modules/TimeSlots/timeSlot.route';
 import { AvailableServiceRoutes } from '../modules/AvailableServices/availableService.route';
 import { AppointmentRoutes } from '../modules/Appointments/appointment.route';
 import { errorRoutes } from '../modules/ErrorLog/errorLog.route';
+import { PatientRoutes } from '../modules/Patients/patient.route';
+import { AvailableDoctorRoutes } from '../modules/AvailableDoctors/availableDoctor.route';
+import { DoctorScheduleRoutes } from '../modules/DoctorSchedules/doctorSchedule.route';
 
 const router = express.Router();
 
@@ -26,6 +29,10 @@ const moduleRoutes = [
     route: UserRoutes,
   },
   {
+    path: '/v1.0/patients',
+    route: PatientRoutes,
+  },
+  {
     path: '/permissions',
     route: PermissionRoutes,
   },
@@ -38,8 +45,16 @@ const moduleRoutes = [
     route: ServiceRoutes,
   },
   {
+    path: '/v1.0/doctor-schedules',
+    route: DoctorScheduleRoutes,
+  },
+  {
     path: '/v1.0/time-slots',
     route: TimeSlotRoutes,
+  },
+  {
+    path: '/v1.0/available-doctors',
+    route: AvailableDoctorRoutes,
   },
   {
     path: '/v1.0/available-services',

@@ -77,12 +77,20 @@ const getAllTimeSlotsFromDB = async (
           [sortBy]: sortOrder,
         },
         where: whereCondition,
+        include: {
+          doctorSchedule: true,
+          availableDoctors: true,
+        },
       })
     : await prisma.timeSlot.findMany({
         orderBy: {
           [sortBy]: sortOrder,
         },
         where: whereCondition,
+        include: {
+          doctorSchedule: true,
+          availableDoctors: true,
+        },
       });
 
   // total count

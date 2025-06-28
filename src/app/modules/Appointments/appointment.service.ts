@@ -1,5 +1,10 @@
 import httpStatus from 'http-status';
-import { Prisma, Appointment } from '@prisma/client';
+import {
+  Prisma,
+  Appointment,
+  PaymentStatus,
+  AppointmentStatus,
+} from '@prisma/client';
 import { prisma } from '../../../shared/prisma';
 import { TPaginationOptions } from '../../../interfaces/pagination';
 import { paginationHelpers } from '../../../helpers/paginationHelpers';
@@ -14,6 +19,74 @@ const createAppointmentIntoDB = async (
 ): Promise<Appointment> => {
   const result = await prisma.appointment.create({
     data: payload,
+  });
+
+  return result;
+};
+
+// book an appointment
+const bookAppointmentIntoDB = async (payload: {
+  patientId: string;
+  availableServiceId: string;
+  appointmentDate: Date;
+}): Promise<any> => {
+  const { patientId, availableServiceId, appointmentDate } = payload;
+
+  // Check if the patient exists
+  const patient = await prisma.patient.findUnique({
+    where: { id: patientId },
+  });
+  if (!patient) {
+    throw new AppError(httpStatus.NOT_FOUND, 'Patient not found');
+  }
+  // Check if the available service exists
+  const availableService = await prisma.availableService.findUnique({
+    where: { id: availableServiceId },
+    include: { service: true },
+  });
+  if (!availableService) {
+    throw new AppError(httpStatus.NOT_FOUND, 'Available service not found');
+  }
+  // Check if the appointment date is in the future
+  if (appointmentDate <= new Date()) {
+    throw new AppError(
+      httpStatus.BAD_REQUEST,
+      'Appointment date must be in the future',
+    );
+  }
+
+  // Create the appointment
+  const result = await prisma.$transaction(async (transactionClient) => {
+    // BOOK APPOINTMENT
+    const appointment = await transactionClient.appointment.create({
+      data: {
+        patientId: patientId,
+        availableServiceId: availableServiceId,
+        appointmentDate: appointmentDate,
+        status: AppointmentStatus.SCHEDULED,
+      },
+    });
+
+    // Update the available service's status to 'booked'
+    await transactionClient.availableService.update({
+      where: { id: availableServiceId },
+      data: {
+        availableSeats: availableService.availableSeats - 1,
+        isBooked: availableService.availableSeats - 1 === 0 ? true : false,
+      },
+    });
+
+    // create payment record
+    const payment = await transactionClient.payment.create({
+      data: {
+        appointmentId: appointment.id,
+        amount: availableService.service.fees,
+        paymentStatus: PaymentStatus.PENDING,
+        paymentDate: null, // Payment date will be updated once payment is completed
+      },
+    });
+
+    return { appointment, payment };
   });
 
   return result;
@@ -138,6 +211,7 @@ const deleteAppointmentFromDB = async (
 };
 
 export const AppointmentServices = {
+  bookAppointmentIntoDB,
   createAppointmentIntoDB,
   getAppointmentByIdFromDB,
   getAllAppointmentsFromDB,

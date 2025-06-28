@@ -6,6 +6,9 @@ import sendResponse from '../../../shared/sendResponse';
 import { UserServices } from './user.service';
 import { PasswordHelpers } from '../../../helpers/passwordHelpers';
 import config from '../../../config';
+import pick from '../../../shared/pick';
+import { paginationFields } from '../../../constants/pagination';
+import { userFilterableFields } from './user.constant';
 
 // CREATE CONTROLLER FN
 const createAdmin: RequestHandler = catchAsync(
@@ -88,8 +91,32 @@ const createPatient: RequestHandler = catchAsync(
   },
 );
 
+const getAllUsers: RequestHandler = catchAsync(
+  async (req: Request, res: Response) => {
+    const filters = pick(req.query, userFilterableFields);
+    const paginationOptions = pick(req.query, paginationFields);
+
+    //SEND DATA TO BUSINESS LOGIC
+    const result = await UserServices.getAllUsersFromDB(
+      filters,
+      paginationOptions,
+    );
+
+    //SEND RESPONSE
+    sendResponse<User[]>(res, {
+      statusCode: httpStatus.OK,
+      success: true,
+      message: 'Users fetched Successfully',
+      meta: result.meta,
+      data: result.data,
+    });
+  },
+);
+
+// EXPORT
 export const UserControllers = {
   createAdmin,
   createDoctor,
   createPatient,
+  getAllUsers,
 };

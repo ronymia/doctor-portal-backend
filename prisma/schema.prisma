@@ -7,13 +7,6 @@ datasource db {
   url      = env("DATABASE_URL")
 }
 
-// enum Role {
-//   SUPER_ADMIN
-//   ADMIN
-//   DOCTOR
-//   PATIENT
-// }
-
 enum UserAccountStatus {
   ACTIVE // User can log in and use the app
   INACTIVE // Account exists but is temporarily paused
@@ -101,13 +94,16 @@ model User {
 
 model Doctor {
   id               String            @id @default(uuid())
-  // doctorId         String            @unique @map("doctor_id")
+  doctorId         String            @unique @map("doctor_id")
   doctor           User              @relation(fields: [userId], references: [id])
   userId           String            @unique @map("user_id")
   specialization   Specialization    @relation(fields: [specializationId], references: [id])
   specializationId String            @map("specialization_id")
   qualification    String
   availableDoctors AvailableDoctor[]
+  doctorProfile    DoctorProfile?
+  doctorSchedule   DoctorSchedule[]
+  medicalRecord    MedicalRecord[]
 
   createdAt DateTime @default(now()) @map("createdAt")
   updatedAt DateTime @updatedAt @map("updatedAt")
@@ -116,13 +112,15 @@ model Doctor {
 }
 
 model Patient {
-  id               String        @id @default(uuid())
-  // patientId        String        @unique @map("patient_id")
-  patient          User          @relation(fields: [userId], references: [id])
-  userId           String        @unique @map("user_id")
-  medicalHistory   String        @map("medical_history")
-  emergencyContact String        @map("emergency_contact")
+  id               String          @id @default(uuid())
+  patientId        String          @unique @map("patient_id")
+  patient          User            @relation(fields: [userId], references: [id])
+  userId           String          @unique @map("user_id")
+  medicalHistory   String          @map("medical_history")
+  emergencyContact String          @map("emergency_contact")
+  patientProfile   PatientProfile?
   appointments     Appointment[]
+  medicalRecord    MedicalRecord[]
 
   createdAt DateTime @default(now()) @map("created_at")
   updatedAt DateTime @updatedAt @map("updated_at")
@@ -131,10 +129,10 @@ model Patient {
 }
 
 model Admin {
-  id     String @id @default(uuid())
-  // adminId String @unique @map("admin_id")
-  user   User   @relation(fields: [userId], references: [id])
-  userId String @unique @map("user_id")
+  id      String @id @default(uuid())
+  adminId String @unique @map("admin_id")
+  user    User   @relation(fields: [userId], references: [id])
+  userId  String @unique @map("user_id")
 
   createdAt DateTime @default(now()) @map("created_at")
   updatedAt DateTime @updatedAt @map("updated_at")
@@ -159,6 +157,33 @@ model Profile {
   @@map("profiles")
 }
 
+model DoctorProfile {
+  id                String @id @default(uuid())
+  doctor            Doctor @relation(fields: [doctorId], references: [id])
+  doctorId          String @unique
+  licenseNumber     String
+  yearsOfExperience Int
+
+  createdAt DateTime @default(now()) @map("created_at")
+  updatedAt DateTime @updatedAt @map("updated_at")
+
+  @@map("doctor_profiles")
+}
+
+model PatientProfile {
+  id              String  @id @default(uuid())
+  patient         Patient @relation(fields: [patientId], references: [id])
+  patientId       String  @unique
+  bloodGroup      String?
+  weight          Float?
+  height          Float?
+  allergies       String?
+  chronicDiseases String?
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+}
+
 model Specialization {
   id          String    @id @default(uuid())
   name        String    @unique
@@ -175,7 +200,6 @@ model Specialization {
 model Service {
   id                String             @id @default(uuid())
   name              String             @unique
-  fees              Int
   description       String
   specialization    Specialization     @relation(fields: [specializationId], references: [id])
   specializationId  String             @map("specialization_id")
@@ -187,12 +211,27 @@ model Service {
   @@map("services")
 }
 
+model DoctorSchedule {
+  id          String     @id @default(uuid())
+  doctor      Doctor     @relation(fields: [doctorId], references: [id])
+  doctorId    String     @map("doctor_id")
+  dayOfWeek   Int?       @map("day_of_week")
+  startTime   String     @map("start_time")
+  endTime     String     @map("end_time")
+  date        DateTime?  @map("date")
+  isRecurring Boolean    @default(true)
+  slots       TimeSlot[]
+
+  @@map("doctor_schedules")
+}
+
 model TimeSlot {
-  id               String             @id @default(uuid())
-  startTime        DateTime           @map("start_time")
-  endTime          DateTime           @map("end_time")
+  id               String            @id @default(uuid())
+  startTime        String            @map("start_time")
+  endTime          String            @map("end_time")
   availableDoctors AvailableDoctor[]
-  availableService AvailableService[]
+  doctorSchedule   DoctorSchedule?   @relation(fields: [doctorScheduleId], references: [id])
+  doctorScheduleId String?           @map("doctor_schedule_id")
 
   createdAt DateTime @default(now()) @map("created_at")
   updatedAt DateTime @updatedAt @map("updated_at")
@@ -200,30 +239,11 @@ model TimeSlot {
   @@map("time_slots")
 }
 
-model AvailableService {
-  id                String          @id @default(uuid())
-  availableDoctor   AvailableDoctor @relation(fields: [availableDoctorId], references: [id])
-  availableDoctorId String          @map("available_doctor_id")
-  services          Service         @relation(fields: [serviceId], references: [id])
-  serviceId         String          @map("service_id")
-  slots             TimeSlot        @relation(fields: [slotId], references: [id])
-  slotId            String          @map("slot_id")
-  slotDate          DateTime        @map("slot_date")
-  availableSeats    Int             @map("available_seats")
-  isBooked          Boolean         @default(false) @map("is_booked")
-
-  createdAt DateTime @default(now()) @map("created_at")
-  updatedAt DateTime @updatedAt @map("updated_at")
-
-  @@unique([availableDoctorId, slotId, slotDate, serviceId])
-  @@map("available_services")
-}
-
 model AvailableDoctor {
   id                String             @id @default(uuid())
   doctor            Doctor             @relation(fields: [doctorId], references: [id])
   doctorId          String             @map("doctor_id")
-  slots             TimeSlot           @relation(fields: [slotId], references: [id])
+  slot              TimeSlot           @relation(fields: [slotId], references: [id])
   slotId            String
   availableDate     DateTime           @map("available_date")
   availableServices AvailableService[]
@@ -235,9 +255,27 @@ model AvailableDoctor {
   @@map("availableDoctors")
 }
 
+model AvailableService {
+  id                String          @id @default(uuid())
+  fees              Int
+  availableDoctor   AvailableDoctor @relation(fields: [availableDoctorId], references: [id])
+  availableDoctorId String          @map("available_doctor_id")
+  service           Service         @relation(fields: [serviceId], references: [id])
+  serviceId         String          @map("service_id")
+  slotDate          DateTime        @map("slot_date")
+  availableSeats    Int             @map("available_seats")
+  isBooked          Boolean         @default(false) @map("is_booked")
+
+  createdAt DateTime @default(now()) @map("created_at")
+  updatedAt DateTime @updatedAt @map("updated_at")
+
+  @@unique([availableDoctorId, serviceId])
+  @@map("available_services")
+}
+
 model Appointment {
   id                 String            @id @default(uuid())
-  patients           Patient           @relation(fields: [patientId], references: [id])
+  patient            Patient           @relation(fields: [patientId], references: [id])
   patientId          String            @map("patient_id")
   availableServiceId String            @map("available_service_id")
   appointmentDate    DateTime          @map("appointment_date")
@@ -255,11 +293,27 @@ model Payment {
   appointment   Appointment   @relation(fields: [appointmentId], references: [id])
   appointmentId String        @map("appointment_id")
   amount        Int
-  paymentDate   DateTime      @map("payment_date")
+  paymentDate   DateTime?     @map("payment_date")
   paymentStatus PaymentStatus @default(PENDING) @map("payment_status")
 
   createdAt DateTime @default(now()) @map("created_at")
   updatedAt DateTime @updatedAt @map("updated_at")
 
   @@map("payments")
+}
+
+model MedicalRecord {
+  id           String   @id @default(uuid())
+  patient      Patient  @relation(fields: [patientId], references: [id])
+  patientId    String
+  doctor       Doctor   @relation(fields: [doctorId], references: [id])
+  doctorId     String
+  diagnosis    String
+  notes        String?
+  treatment    Json?
+  prescription Json?
+  visitDate    DateTime @default(now())
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
 }

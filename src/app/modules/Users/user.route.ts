@@ -107,4 +107,6 @@ router.post(
   },
 );
 
+router.route('/').get(UserControllers.getAllUsers);
+
 export const UserRoutes = router;

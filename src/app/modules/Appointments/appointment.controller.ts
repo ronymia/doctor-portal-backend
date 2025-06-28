@@ -1,5 +1,5 @@
 import { Request, Response } from 'express';
-import { Appointment, Specialization } from '@prisma/client';
+import { Appointment } from '@prisma/client';
 import httpStatus from 'http-status';
 import catchAsync from '../../../shared/catchAsync';
 import sendResponse from '../../../shared/sendResponse';
@@ -9,19 +9,21 @@ import { appointmentFilterableFields } from './appointment.constant';
 import { paginationFields } from '../../../constants/pagination';
 
 // CREATE CONTROLLER FN
-const createAppointment = catchAsync(async (req: Request, res: Response) => {
-  const { ...payloadData } = req.body; //COPY
-  // SEND DATA TO BUSINESS LOGIC
-  const result = await AppointmentServices.createAppointmentIntoDB(payloadData);
+const bookAppointmentIntoDB = catchAsync(
+  async (req: Request, res: Response) => {
+    const { ...payloadData } = req.body; //COPY
+    // SEND DATA TO BUSINESS LOGIC
+    const result = await AppointmentServices.bookAppointmentIntoDB(payloadData);
 
-  // SEND RESPONSE
-  sendResponse<Appointment>(res, {
-    statusCode: httpStatus.CREATED,
-    success: true,
-    message: 'Appointment created Successfully',
-    data: result,
-  });
-});
+    // SEND RESPONSE
+    sendResponse<Appointment>(res, {
+      statusCode: httpStatus.CREATED,
+      success: true,
+      message: 'Appointment Booked Successfully',
+      data: result,
+    });
+  },
+);
 
 // GET BY ID  CONTROLLER FN
 const getAppointmentById = catchAsync(async (req: Request, res: Response) => {
@@ -93,7 +95,7 @@ const deleteAppointment = catchAsync(async (req: Request, res: Response) => {
 });
 
 export const AppointmentControllers = {
-  createAppointment,
+  bookAppointmentIntoDB,
   getAppointmentById,
   getAllAppointments,
   updateAppointment,

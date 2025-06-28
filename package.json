@@ -8,6 +8,11 @@
   "license": "MIT",
   "private": false,
   "scripts": {
+    "dev": "ts-node-dev --respawn --transpile-only src/server.ts",
+    "seed": "ts-node src/app/DB/seedDB.ts",
+    "migrate:reset": "prisma migrate reset --force",
+    "migrate:dev": "prisma migrate dev",
+    "generate": "prisma generate",
     "start": "nodemon --watch src/**/*.ts --ignore src/**/*.test.ts --exec ts-node-dev --respawn --transpile-only src/server.ts",
     "build": "tsc",
     "postinstall": "prisma generate"

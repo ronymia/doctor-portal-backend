@@ -1,0 +1,30 @@
+{
+    "keep": {
+        "days": true,
+        "amount": 14
+    },
+    "auditLog": "G:\\doctor-portal-backend\\logs\\successes\\.997c1bdcab5d5cf907154a893046a5ddac78b44f-audit.json",
+    "files": [
+        {
+            "date": 1751006135961,
+            "name": "G:\\doctor-portal-backend\\logs\\successes\\2025-27-06-12-success.log",
+            "hash": "d5d01a3856af902b5df664b28083265430e8e936432ade7b66aaf5561031cda4"
+        },
+        {
+            "date": 1751040840853,
+            "name": "G:\\doctor-portal-backend\\logs\\successes\\2025-27-06-22-success.log",
+            "hash": "0f0411933962270f4b9be899f8ebd390848326aa7f640d4c06af7a586c981bf6"
+        },
+        {
+            "date": 1751043624570,
+            "name": "G:\\doctor-portal-backend\\logs\\successes\\2025-27-06-23-success.log",
+            "hash": "da5675d39cfebdeccb75f24b28f413da00f7f80cae145f2d49cbb6e0f9c1df57"
+        },
+        {
+            "date": 1751089215274,
+            "name": "G:\\doctor-portal-backend\\logs\\successes\\2025-28-06-11-success.log",
+            "hash": "c58b6a5a4602daee8f693544cd636e3b2630e597bdfd019e5bc2962d74f07a2e"
+        }
+    ],
+    "hashType": "sha256"
+}

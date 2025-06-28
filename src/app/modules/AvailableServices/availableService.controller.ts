@@ -1,30 +1,46 @@
-import { Request, RequestHandler, Response } from "express";
-import { AvailableService } from "@prisma/client";
-import httpStatus from "http-status";
-import catchAsync from "../../../shared/catchAsync";
-import sendResponse from "../../../shared/sendResponse";
-import pick from "../../../shared/pick";
-import { availableServiceFilterableFields } from "./availableService.constant";
-import { paginationFields } from "../../../constants/pagination";
-import { AvailableServiceServices } from "./availableService.service";
+import { Request, RequestHandler, Response } from 'express';
+import { AvailableService } from '@prisma/client';
+import httpStatus from 'http-status';
+import catchAsync from '../../../shared/catchAsync';
+import sendResponse from '../../../shared/sendResponse';
+import pick from '../../../shared/pick';
+import { availableServiceFilterableFields } from './availableService.constant';
+import { paginationFields } from '../../../constants/pagination';
+import { AvailableServiceServices } from './availableService.service';
 
 // GET BY ID  CONTROLLER FUNCTION
-const getAvailableServiceById: RequestHandler = catchAsync(
+const createAvailableServiceIntoDB: RequestHandler = catchAsync(
   async (req: Request, res: Response) => {
-    const { id } = req.params; //COPY
+    const { ...payloadData } = req.body; //COPY
     //SEND DATA TO BUSINESS LOGIC
-    const result = await AvailableServiceServices.getAvailableServiceByIdFromDB(
-      id
-    );
+    const result =
+      await AvailableServiceServices.createAvailableServiceIntoDB(payloadData);
 
     //SEND RESPONSE
     sendResponse<AvailableService>(res, {
       statusCode: httpStatus.OK,
       success: true,
-      message: "Available Service retrieved Successfully",
+      message: 'Available Service created Successfully',
       data: result,
     });
-  }
+  },
+);
+// GET BY ID  CONTROLLER FUNCTION
+const getAvailableServiceById: RequestHandler = catchAsync(
+  async (req: Request, res: Response) => {
+    const { id } = req.params; //COPY
+    //SEND DATA TO BUSINESS LOGIC
+    const result =
+      await AvailableServiceServices.getAvailableServiceByIdFromDB(id);
+
+    //SEND RESPONSE
+    sendResponse<AvailableService>(res, {
+      statusCode: httpStatus.OK,
+      success: true,
+      message: 'Available Service retrieved Successfully',
+      data: result,
+    });
+  },
 );
 
 // GET BY ID  CONTROLLER FN
@@ -35,22 +51,22 @@ const getAllAvailableServices: RequestHandler = catchAsync(
     //SEND DATA TO BUSINESS LOGIC
     const result = await AvailableServiceServices.getAllAvailableServicesFromDB(
       filters,
-      paginationOptions
+      paginationOptions,
     );
 
     //SEND RESPONSE
     sendResponse<AvailableService[]>(res, {
       statusCode: httpStatus.OK,
       success: true,
-      message: "Available service fetch Successfully",
+      message: 'Available service fetch Successfully',
       meta: result.meta,
       data: result.data,
     });
-  }
+  },
 );
 
 export const AvailableServiceControllers = {
-  //   createAvailableService,
+  createAvailableServiceIntoDB,
   getAvailableServiceById,
   getAllAvailableServices,
   //   updateAvailableService,

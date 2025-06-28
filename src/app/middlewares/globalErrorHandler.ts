@@ -9,6 +9,7 @@ import { Prisma } from '@prisma/client';
 import handleValidationError from '../../errors/handleValidationError';
 import handleClientKnownError from '../../errors/handleClientKnownError';
 import { logError } from '../../shared/logError';
+import handleClientInitializationError from '../../errors/handleClientInitializationError';
 
 const globalErrorHandler: ErrorRequestHandler = async (
   err,
@@ -29,6 +30,7 @@ const globalErrorHandler: ErrorRequestHandler = async (
   if (config.node_env === 'development') {
     // eslint-disable-next-line no-console
     console.debug(`🐱‍🏍 globalErrorHandler ~~`, err);
+    errorLogger.error(`🐱‍🏍 globalErrorHandler ~~`, err);
   } else {
     errorLogger.error(`🐱‍🏍 globalErrorHandler ~~`, err);
   }
@@ -55,6 +57,11 @@ const globalErrorHandler: ErrorRequestHandler = async (
   //  ZOD ERRORS
   if (err instanceof ZodError) {
     const simplifiedError = handleZodError(err);
+    statusCode = simplifiedError.statusCode;
+    message = simplifiedError.message;
+    errorSources = simplifiedError.errorSources;
+  } else if (err instanceof Prisma.PrismaClientInitializationError) {
+    const simplifiedError = handleClientInitializationError(err);
     statusCode = simplifiedError.statusCode;
     message = simplifiedError.message;
     errorSources = simplifiedError.errorSources;
