@@ -80,7 +80,7 @@ const bookAppointmentIntoDB = async (payload: {
     const payment = await transactionClient.payment.create({
       data: {
         appointmentId: appointment.id,
-        amount: availableService.service.fees,
+        amount: availableService.fees,
         paymentStatus: PaymentStatus.PENDING,
         paymentDate: null, // Payment date will be updated once payment is completed
       },
@@ -92,6 +92,165 @@ const bookAppointmentIntoDB = async (payload: {
   return result;
 };
 
+const cancelAppointment = async (appointmentId: string): Promise<any> => {
+  const appointment = await prisma.appointment.findUnique({
+    where: {
+      id: appointmentId,
+    },
+  });
+
+  if (!appointment) {
+    throw new Error('Appointment does not exist');
+  }
+
+  if (appointment.status === AppointmentStatus.CANCELLED) {
+    throw new Error('Appointment has already been cancelled');
+  }
+
+  if (appointment.status === AppointmentStatus.COMPLETED) {
+    throw new Error('Appointment has already been completed');
+  }
+
+  const cancelledAppointment = await prisma.$transaction(
+    async (transactionClient) => {
+      const appointmentToCancel = await transactionClient.appointment.update({
+        where: {
+          id: appointmentId,
+        },
+        data: {
+          status: AppointmentStatus.CANCELLED,
+        },
+      });
+
+      const availableService =
+        await transactionClient.availableService.findUnique({
+          where: {
+            id: appointment.availableServiceId,
+          },
+        });
+
+      await transactionClient.availableService.update({
+        where: {
+          id: appointment.availableServiceId,
+        },
+        data: {
+          availableSeats: {
+            increment: 1,
+          },
+
+          isBooked:
+            availableService && availableService.availableSeats + 1 > 0
+              ? false
+              : true,
+        },
+      });
+
+      await transactionClient.payment.update({
+        where: {
+          appointmentId: appointmentId,
+        },
+        data: {
+          paymentStatus: PaymentStatus.CANCELLED,
+        },
+      });
+
+      return {
+        appointment: appointmentToCancel,
+      };
+    },
+  );
+
+  return cancelledAppointment;
+};
+
+const startAppointment = async (appointmentId: string): Promise<any> => {
+  const appointment = await prisma.appointment.findUnique({
+    where: {
+      id: appointmentId,
+    },
+  });
+
+  if (!appointment) {
+    throw new Error('Appointment does not exist');
+  }
+
+  if (appointment.status === AppointmentStatus.CANCELLED) {
+    throw new Error('Appointment has already been cancelled');
+  }
+
+  if (appointment.status === AppointmentStatus.COMPLETED) {
+    throw new Error('Appointment has already been completed');
+  }
+
+  const startedAppointment = await prisma.$transaction(
+    async (transactionClient) => {
+      await transactionClient.payment.update({
+        where: {
+          appointmentId,
+        },
+        data: {
+          paymentStatus: PaymentStatus.PAID,
+          paymentDate: new Date().toISOString(),
+        },
+      });
+
+      const appointmentToStart = await transactionClient.appointment.update({
+        where: {
+          id: appointmentId,
+        },
+        data: {
+          status: AppointmentStatus.PENDING_PAYMENT,
+        },
+      });
+
+      if (!appointmentToStart) {
+        await transactionClient.payment.update({
+          where: {
+            appointmentId,
+          },
+          data: {
+            paymentStatus: PaymentStatus.REFUNDED,
+          },
+        });
+      }
+
+      return appointmentToStart;
+    },
+  );
+
+  return startedAppointment;
+};
+
+const finishAppointment = async (appointmentId: string): Promise<any> => {
+  const appointment = await prisma.appointment.findUnique({
+    where: {
+      id: appointmentId,
+    },
+  });
+
+  if (!appointment) {
+    throw new Error('Appointment does not exist');
+  }
+
+  if (appointment.status === AppointmentStatus.CANCELLED) {
+    throw new Error('Appointment has already been cancelled');
+  }
+
+  if (appointment.status === AppointmentStatus.COMPLETED) {
+    throw new Error('Appointment has already been completed');
+  }
+
+  const appointmentToFinish = await prisma.appointment.update({
+    where: {
+      id: appointmentId,
+    },
+    data: {
+      status: AppointmentStatus.COMPLETED,
+    },
+  });
+
+  return appointmentToFinish;
+};
 // GET BY ID FROM DATABASE
 const getAppointmentByIdFromDB = async (
   id: string,
@@ -212,6 +371,9 @@ const deleteAppointmentFromDB = async (
 
 export const AppointmentServices = {
   bookAppointmentIntoDB,
+  cancelAppointment,
+  startAppointment,
+  finishAppointment,
   createAppointmentIntoDB,
   getAppointmentByIdFromDB,
   getAllAppointmentsFromDB,

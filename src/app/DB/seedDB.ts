@@ -1,5 +1,6 @@
-import { PrismaClient } from '@prisma/client';
+import { PrismaClient, UserAccountStatus } from '@prisma/client';
 import { PasswordHelpers } from '../../helpers/passwordHelpers';
+import { ENUM_USER_ROLE } from '../../enums/user';
 
 const prisma = new PrismaClient();
 
@@ -74,11 +75,11 @@ async function seed() {
     const adminPassword = await PasswordHelpers.passwordHash('12356'); // bcrypt.hash('12356', 12);
     await prisma.user.create({
       data: {
-        email: 'admin@example.com',
+        email: 'admin@yopmail.com',
         phoneNumber: '0123456789',
         password: adminPassword,
-        role: 'ADMIN',
-        status: 'ACTIVE',
+        role: ENUM_USER_ROLE.ADMIN,
+        status: UserAccountStatus.ACTIVE,
         admin: {
           create: {
             adminId: 'ADM001',
@@ -100,11 +101,11 @@ async function seed() {
     const doctorPassword = await PasswordHelpers.passwordHash('123456'); // bcrypt.hash('123456', 12);
     await prisma.user.create({
       data: {
-        email: 'doctor@example.com',
+        email: 'doctor@yopmail.com',
         phoneNumber: '0198765432',
         password: doctorPassword,
-        role: 'DOCTOR',
-        status: 'ACTIVE',
+        role: ENUM_USER_ROLE.DOCTOR,
+        status: UserAccountStatus.ACTIVE,
         doctor: {
           create: {
             doctorId: 'DOC001',
@@ -134,11 +135,11 @@ async function seed() {
     const patientPassword = await PasswordHelpers.passwordHash('123456'); // bcrypt.hash('123456', 12);
     await prisma.user.create({
       data: {
-        email: 'patient@example.com',
+        email: 'patient@yopmail.com',
         phoneNumber: '0170000000',
         password: patientPassword,
-        role: 'PATIENT',
-        status: 'ACTIVE',
+        role: ENUM_USER_ROLE.PATIENT,
+        status: UserAccountStatus.ACTIVE,
         patient: {
           create: {
             patientId: 'PAT001',
@@ -165,6 +166,31 @@ async function seed() {
           },
         },
       },
+    });
+
+    // 6. Create 15-minute Time Slots between 10:00 and 12:00
+    const timeSlots = [];
+    for (let hour = 10; hour < 12; hour++) {
+      for (let minute = 0; minute < 60; minute += 15) {
+        const startHour = hour.toString().padStart(2, '0');
+        const startMinute = minute.toString().padStart(2, '0');
+
+        const endMinuteTotal = minute + 15;
+        const endHour = (endMinuteTotal >= 60 ? hour + 1 : hour)
+          .toString()
+          .padStart(2, '0');
+        const endMinute = (endMinuteTotal % 60).toString().padStart(2, '0');
+
+        timeSlots.push({
+          startTime: `${startHour}:${startMinute}`,
+          endTime: `${endHour}:${endMinute}`,
+        });
+      }
+    }
+
+    await prisma.timeSlot.createMany({
+      data: timeSlots,
+      skipDuplicates: true,
     });
 
     console.log('✅ Seed completed successfully');

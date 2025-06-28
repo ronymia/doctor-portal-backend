@@ -10,6 +10,15 @@ router.route('/book-appointment').post(
   // validateRequest(AppointmentControllers.createAppointmentZodSchema),
   AppointmentControllers.bookAppointmentIntoDB,
 );
+router.patch(
+  '/cancel-appointment/:id',
+  AppointmentControllers.cancelAppointment,
+);
+router.patch('/start-appointment/:id', AppointmentControllers.startAppointment);
+router.patch(
+  '/finish-appointment/:id',
+  AppointmentControllers.finishAppointment,
+);
 router.route('/').get(
   auth(ENUM_USER_ROLE.SUPER_ADMIN, ENUM_USER_ROLE.ADMIN),
   // validateRequest(AppointmentControllers.createAppointmentZodSchema),

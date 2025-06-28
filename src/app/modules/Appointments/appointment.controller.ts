@@ -24,6 +24,48 @@ const bookAppointmentIntoDB = catchAsync(
     });
   },
 );
+// CREATE CONTROLLER FN
+const cancelAppointment = catchAsync(async (req: Request, res: Response) => {
+  const { id } = req.params; //COPY
+  // SEND DATA TO BUSINESS LOGIC
+  const result = await AppointmentServices.cancelAppointment(id);
+
+  // SEND RESPONSE
+  sendResponse<Appointment>(res, {
+    statusCode: httpStatus.CREATED,
+    success: true,
+    message: 'Appointment Cancelled Successfully',
+    data: result,
+  });
+});
+// CREATE CONTROLLER FN
+const startAppointment = catchAsync(async (req: Request, res: Response) => {
+  const { id } = req.params; //COPY
+  // SEND DATA TO BUSINESS LOGIC
+  const result = await AppointmentServices.startAppointment(id);
+
+  // SEND RESPONSE
+  sendResponse<Appointment>(res, {
+    statusCode: httpStatus.CREATED,
+    success: true,
+    message: 'Appointment Started Successfully',
+    data: result,
+  });
+});
+// CREATE CONTROLLER FN
+const finishAppointment = catchAsync(async (req: Request, res: Response) => {
+  const { id } = req.params; //COPY
+  // SEND DATA TO BUSINESS LOGIC
+  const result = await AppointmentServices.finishAppointment(id);
+
+  // SEND RESPONSE
+  sendResponse<Appointment>(res, {
+    statusCode: httpStatus.CREATED,
+    success: true,
+    message: 'Appointment Finished Successfully',
+    data: result,
+  });
+});
 
 // GET BY ID  CONTROLLER FN
 const getAppointmentById = catchAsync(async (req: Request, res: Response) => {
@@ -96,6 +138,9 @@ const deleteAppointment = catchAsync(async (req: Request, res: Response) => {
 
 export const AppointmentControllers = {
   bookAppointmentIntoDB,
+  cancelAppointment,
+  startAppointment,
+  finishAppointment,
   getAppointmentById,
   getAllAppointments,
   updateAppointment,
