@@ -1,6 +1,6 @@
 import { Gender, UserAccountStatus } from '@prisma/client';
 
-export type TUserFilters = {
+export type TUserFilterRequest = {
   searchTerm?: string;
   email?: string;
   phone_number?: string;

@@ -1,7 +1,5 @@
-import express from "express";
-import validateRequest from "../../middlewares/validateRequest";
-import { AvailableServiceValidations } from "./availableService.validation";
-import { AvailableServiceControllers } from "./availableService.controller";
+import express from 'express';
+import { AvailableServiceControllers } from './availableService.controller';
 
 const router = express.Router();
 
@@ -23,11 +21,11 @@ const router = express.Router();
  *
  *********************/
 
-// router.post(
-//   "/",
-//   validateRequest(AvailableServiceValidations.createAvailableServiceZodSchema),
-//   AvailableServiceControllers.createAvailableService
-// );
+router.post(
+  '/',
+  //   validateRequest(AvailableServiceValidations.createAvailableServiceZodSchema),
+  AvailableServiceControllers.createAvailableServiceIntoDB,
+);
 
 /***************
  * @api {post} /products
@@ -47,7 +45,7 @@ const router = express.Router();
  *
  *********************/
 
-router.get("/:id", AvailableServiceControllers.getAvailableServiceById);
+router.get('/:id', AvailableServiceControllers.getAvailableServiceById);
 
 /***************
  * @api {post} /products
@@ -67,7 +65,7 @@ router.get("/:id", AvailableServiceControllers.getAvailableServiceById);
  *
  *********************/
 
-router.get("/:id", AvailableServiceControllers.getAllAvailableServices);
+router.get('/', AvailableServiceControllers.getAllAvailableServices);
 
 /***************
  * @api {post} /products

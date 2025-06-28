@@ -1,11 +1,20 @@
-import httpStatus from 'http-status';
-import { AvailableService, PrismaClient, Prisma } from '@prisma/client';
+import { AvailableService, Prisma } from '@prisma/client';
 import { TAvailableServiceFilters } from './availableService.interface';
 import { TPaginationOptions } from '../../../interfaces/pagination';
 import { TGenericResponse } from '../../../interfaces/response';
 import { paginationHelpers } from '../../../helpers/paginationHelpers';
 import { availableServiceSearchableFields } from './availableService.constant';
 import { prisma } from '../../../shared/prisma';
+
+const createAvailableServiceIntoDB = async (
+  payload: AvailableService,
+): Promise<AvailableService> => {
+  const result = await prisma.availableService.create({
+    data: payload,
+  });
+
+  return result;
+};
 
 // GET BY ID FROM DATABASE AvailableService FUNCTION
 const getAvailableServiceByIdFromDB = async (
@@ -61,14 +70,21 @@ const getAllAvailableServicesFromDB = async (
     : {};
 
   //Database
-  const result = await prisma.availableService.findMany({
-    skip,
-    take: limit,
-    orderBy: {
-      [sortBy]: sortOrder,
-    },
-    where: whereCondition,
-  });
+  const result = limit
+    ? await prisma.availableService.findMany({
+        skip,
+        take: limit,
+        orderBy: {
+          [sortBy]: sortOrder,
+        },
+        where: whereCondition,
+      })
+    : await prisma.availableService.findMany({
+        orderBy: {
+          [sortBy]: sortOrder,
+        },
+        where: whereCondition,
+      });
 
   // total count
   const totalCount = await prisma.availableService.count();
@@ -85,6 +101,7 @@ const getAllAvailableServicesFromDB = async (
 };
 
 export const AvailableServiceServices = {
+  createAvailableServiceIntoDB,
   getAvailableServiceByIdFromDB,
   getAllAvailableServicesFromDB,
 };

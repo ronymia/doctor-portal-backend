@@ -5,7 +5,7 @@ import app from './app';
 import { errorLogger, logger } from './shared/logger';
 import config from './config';
 import { prisma } from './shared/prisma';
-import seedSuperAdmin from './app/DB/seedDB';
+import seedSuperAdmin from './app/DB/seedSuperAdmin';
 
 async function bootstrap() {
   // CHECK DATABASE CONNECTION

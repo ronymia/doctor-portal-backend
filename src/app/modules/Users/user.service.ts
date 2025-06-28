@@ -1,18 +1,19 @@
 import httpStatus from 'http-status';
-import {
-  User,
-  Profile,
-  Patient,
-  Gender,
-  Doctor,
-  UserAccountStatus,
-} from '@prisma/client';
+import { User, Patient, Gender, Doctor, Prisma } from '@prisma/client';
 import AppError from '../../../errors/AppError';
 import { ENUM_USER_ROLE } from '../../../enums/user';
-import config from '../../../config';
 import { prisma } from '../../../shared/prisma';
-import { IAdminCreate, IDoctorCreate, IPatientCreate } from './user.interface';
+import {
+  IAdminCreate,
+  IDoctorCreate,
+  IPatientCreate,
+  TUserFilterRequest,
+} from './user.interface';
 import { logger } from '../../../shared/logger';
+import { TGenericResponse } from '../../../interfaces/response';
+import { paginationHelpers } from '../../../helpers/paginationHelpers';
+import { userSearchableFields } from './user.constant';
+import { TPaginationOptions } from '../../../interfaces/pagination';
 
 //INSERT TO DATABASE
 const createAdminIntoDB = async (
@@ -162,8 +163,107 @@ const createPatientIntoDB = async (payload: IPatientCreate): Promise<User> => {
   return result;
 };
 
+// GET ALL USERS FROM DATABASE
+const getAllUsersFromDB = async (
+  filters: TUserFilterRequest,
+  paginationOptions: TPaginationOptions,
+): Promise<TGenericResponse<User[]>> => {
+  const { page, skip, limit, sortBy, sortOrder } =
+    paginationHelpers.calculatePagination(paginationOptions);
+
+  // Extract SearchTerm to implement search query
+  const { searchTerm, ...filtersData } = filters;
+
+  // Search and filter condition
+  const andConditions = [];
+
+  // Search in Field
+  if (searchTerm) {
+    andConditions.push({
+      OR: userSearchableFields.map((field) => ({
+        [field]: {
+          contains: searchTerm,
+          mode: 'insensitive',
+        },
+      })),
+    });
+  }
+
+  // field Filtering
+  if (Object.keys(filtersData).length) {
+    andConditions.push({
+      AND: Object.entries(filtersData).map(([field, value]) => ({
+        [field]: {
+          equals: value,
+        },
+      })),
+    });
+  }
+
+  // If there is no condition , put {} to give all data
+  const whereCondition: Prisma.UserWhereInput = andConditions.length
+    ? { AND: andConditions }
+    : {
+        role: {
+          not: ENUM_USER_ROLE.SUPER_ADMIN, // Exclude super admin
+        },
+      };
+
+  const users = limit
+    ? await prisma.user.findMany({
+        take: limit,
+        skip,
+        orderBy: {
+          [sortBy]: sortOrder,
+        },
+        include: {
+          doctor: filters?.role === ENUM_USER_ROLE.DOCTOR ? true : false,
+          patient: filters?.role === ENUM_USER_ROLE.PATIENT ? true : false,
+          admin: filters?.role === ENUM_USER_ROLE.ADMIN ? true : false,
+          profile: true,
+        },
+        where: whereCondition,
+      })
+    : await prisma.user.findMany({
+        orderBy: {
+          [sortBy]: sortOrder,
+        },
+        include: {
+          doctor: filters?.role === ENUM_USER_ROLE.DOCTOR ? true : false,
+          patient: filters?.role === ENUM_USER_ROLE.PATIENT ? true : false,
+          admin: filters?.role === ENUM_USER_ROLE.ADMIN ? true : false,
+          profile: true,
+        },
+        where: whereCondition,
+      });
+
+  users.forEach((user) => {
+    if ('password' in user) {
+      delete (user as Partial<User>)?.password;
+    }
+  });
+
+  // total count
+  const totalCount = await prisma.user.count({
+    where: whereCondition,
+  });
+  const totalPage = Math.ceil(totalCount / limit);
+
+  return {
+    meta: {
+      page,
+      limit,
+      total: totalCount,
+      totalPage,
+    },
+    data: users,
+  };
+};
+
+// EXPORT
 export const UserServices = {
   createAdminIntoDB,
   createDoctorIntoDB,
   createPatientIntoDB,
+  getAllUsersFromDB,
 };
