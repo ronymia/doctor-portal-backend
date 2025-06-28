@@ -102,7 +102,6 @@ model Doctor {
   qualification    String
   availableDoctors AvailableDoctor[]
   doctorProfile    DoctorProfile?
-  doctorSchedule   DoctorSchedule[]
   medicalRecord    MedicalRecord[]
 
   createdAt DateTime @default(now()) @map("createdAt")
@@ -211,27 +210,12 @@ model Service {
   @@map("services")
 }
 
-model DoctorSchedule {
-  id          String     @id @default(uuid())
-  doctor      Doctor     @relation(fields: [doctorId], references: [id])
-  doctorId    String     @map("doctor_id")
-  dayOfWeek   Int?       @map("day_of_week")
-  startTime   String     @map("start_time")
-  endTime     String     @map("end_time")
-  date        DateTime?  @map("date")
-  isRecurring Boolean    @default(true)
-  slots       TimeSlot[]
-
-  @@map("doctor_schedules")
-}
-
 model TimeSlot {
-  id               String            @id @default(uuid())
-  startTime        String            @map("start_time")
-  endTime          String            @map("end_time")
+  id               String             @id @default(uuid())
+  startTime        String             @map("start_time")
+  endTime          String             @map("end_time")
   availableDoctors AvailableDoctor[]
-  doctorSchedule   DoctorSchedule?   @relation(fields: [doctorScheduleId], references: [id])
-  doctorScheduleId String?           @map("doctor_schedule_id")
+  availableService AvailableService[]
 
   createdAt DateTime @default(now()) @map("created_at")
   updatedAt DateTime @updatedAt @map("updated_at")
@@ -241,35 +225,38 @@ model TimeSlot {
 
 model AvailableDoctor {
   id                String             @id @default(uuid())
-  doctor            Doctor             @relation(fields: [doctorId], references: [id])
-  doctorId          String             @map("doctor_id")
-  slot              TimeSlot           @relation(fields: [slotId], references: [id])
-  slotId            String
   availableDate     DateTime           @map("available_date")
   availableServices AvailableService[]
+  doctorId          String             @map("doctor_id")
+  doctor            Doctor             @relation(fields: [doctorId], references: [id])
+  slotId            String             @map("slot_id")
+  slot              TimeSlot           @relation(fields: [slotId], references: [id])
 
   createdAt DateTime @default(now()) @map("created_at")
   updatedAt DateTime @updatedAt @map("updated_at")
 
   @@unique([doctorId, slotId, availableDate])
-  @@map("availableDoctors")
+  @@map("available_doctors")
 }
 
 model AvailableService {
-  id                String          @id @default(uuid())
-  fees              Int
-  availableDoctor   AvailableDoctor @relation(fields: [availableDoctorId], references: [id])
-  availableDoctorId String          @map("available_doctor_id")
-  service           Service         @relation(fields: [serviceId], references: [id])
-  serviceId         String          @map("service_id")
-  slotDate          DateTime        @map("slot_date")
-  availableSeats    Int             @map("available_seats")
-  isBooked          Boolean         @default(false) @map("is_booked")
+  id                String           @id @default(uuid())
+  slotDate          DateTime         @map("slot_date")
+  availableSeats    Int              @map("available_seats")
+  isBooked          Boolean          @default(false) @map("is_booked")
+  fees              String
+  appointments      Appointment[]
+  serviceId         String           @map("service_id")
+  service           Service          @relation(fields: [serviceId], references: [id])
+  slotId            String           @map("slot_id")
+  slot              TimeSlot         @relation(fields: [slotId], references: [id])
+  availableDoctorId String           @map("available_doctor_id")
+  availableDoctor   AvailableDoctor? @relation(fields: [availableDoctorId], references: [id])
 
   createdAt DateTime @default(now()) @map("created_at")
   updatedAt DateTime @updatedAt @map("updated_at")
 
-  @@unique([availableDoctorId, serviceId])
+  @@unique([slotId, serviceId, slotDate, availableDoctorId])
   @@map("available_services")
 }
 
@@ -281,6 +268,7 @@ model Appointment {
   appointmentDate    DateTime          @map("appointment_date")
   status             AppointmentStatus @default(SCHEDULED)
   payments           Payment[]
+  availableService   AvailableService  @relation(fields: [availableServiceId], references: [id])
 
   createdAt DateTime @default(now()) @map("created_at")
   updatedAt DateTime @updatedAt @map("updated_at")
@@ -308,12 +296,12 @@ model MedicalRecord {
   patientId    String
   doctor       Doctor   @relation(fields: [doctorId], references: [id])
   doctorId     String
-  diagnosis    String
+  diagnosis    String?
   notes        String?
   treatment    Json?
   prescription Json?
-  visitDate    DateTime @default(now())
+  visitDate    DateTime @default(now()) @map("visit_date")
 
-  createdAt DateTime @default(now())
-  updatedAt DateTime @updatedAt
+  createdAt DateTime @default(now()) @map("created_at")
+  updatedAt DateTime @updatedAt @map("updated_at")
 }
