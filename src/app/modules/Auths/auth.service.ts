@@ -10,6 +10,7 @@ import { PasswordHelpers } from '../../../helpers/passwordHelpers';
 import { JwtHelpers } from '../../../helpers/jwtHelpers';
 import config from '../../../config';
 import { prisma } from '../../../shared/prisma';
+import { User, UserAccountStatus } from '@prisma/client';
 
 // LOGIN USER
 const loginUser = async (payload: TLoginUser): Promise<TLoginUserResponse> => {
@@ -17,17 +18,21 @@ const loginUser = async (payload: TLoginUser): Promise<TLoginUserResponse> => {
   // VERIFY USER EXISTENCE
   const user = await prisma.user.findUnique({
     where: { email: payload.email },
+    include: {
+      profile: true,
+      userPermissions: true,
+    },
   });
   // IF NOT EXIST
   if (!user) {
     throw new AppError(httpStatus.NOT_FOUND, 'User not Found');
   }
   // CHECK USER ALREADY DELETE OR NOT
-  if (user?.is_deleted) {
-    throw new AppError(httpStatus.FORBIDDEN, 'User Already Delete');
-  }
+  // if (user?.is_deleted) {
+  //   throw new AppError(httpStatus.FORBIDDEN, 'User Already Delete');
+  // }
   // CHECKING IF USER IS BLOCK
-  if (user?.status === 'block') {
+  if (user?.status === UserAccountStatus.BLOCKED) {
     throw new AppError(httpStatus.FORBIDDEN, 'User is block');
   }
 
@@ -53,14 +58,15 @@ const loginUser = async (payload: TLoginUser): Promise<TLoginUserResponse> => {
     config.jwt.refresh_expires_in as string,
   );
 
+  // DELETE PASSWORD
+  if ('password' in user) {
+    delete (user as Partial<User>).password;
+  }
+
   return {
     access_token: accessToken,
     refresh_token: refreshToken,
-    user: {
-      ...rest,
-      id: user_id,
-      role,
-    },
+    user,
   };
 };
 

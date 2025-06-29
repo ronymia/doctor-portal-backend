@@ -10,7 +10,6 @@ import { AppointmentRoutes } from '../modules/Appointments/appointment.route';
 import { errorRoutes } from '../modules/ErrorLog/errorLog.route';
 import { PatientRoutes } from '../modules/Patients/patient.route';
 import { AvailableDoctorRoutes } from '../modules/AvailableDoctors/availableDoctor.route';
-import { DoctorScheduleRoutes } from '../modules/DoctorSchedules/doctorSchedule.route';
 
 const router = express.Router();
 
@@ -44,10 +43,10 @@ const moduleRoutes = [
     path: '/v1.0/services',
     route: ServiceRoutes,
   },
-  {
-    path: '/v1.0/doctor-schedules',
-    route: DoctorScheduleRoutes,
-  },
+  // {
+  //   path: '/v1.0/doctor-schedules',
+  //   route: DoctorScheduleRoutes,
+  // },
   {
     path: '/v1.0/time-slots',
     route: TimeSlotRoutes,

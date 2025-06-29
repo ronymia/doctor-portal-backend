@@ -16,7 +16,10 @@ const handleClientKnownError = (
   // ERROR SOURCE
   const errorSources: TErrorSources = [
     {
-      path: error?.meta?.target?.join(','),
+      path:
+        error?.meta && typeof error.meta === 'object'
+          ? (Object.values(error.meta)[0]?.toString() ?? 'unknown')
+          : 'unknown',
       message: errorMessages[errorMessages.length - 1],
     },
   ];

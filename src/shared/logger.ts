@@ -1,4 +1,5 @@
 /* eslint-disable no-undef */
+import fs from 'fs';
 import path from 'path';
 import { createLogger, format, transports } from 'winston';
 import DailyRotateFile from 'winston-daily-rotate-file';
@@ -14,6 +15,17 @@ const myFormat = printf(({ level, message, label, timestamp }) => {
   return `${date.toDateString()} ${hour}:${minutes}:${seconds} } [${label}] ${level}: ${JSON.stringify(message)}`;
 });
 
+// ✅ Writable log directory for serverless environments
+const baseLogPath = path.join('/tmp', 'logs', 'winston');
+
+// Ensure log subdirectories exist
+['successes', 'errors'].forEach((dir) => {
+  const fullPath = path.join(baseLogPath, dir);
+  if (!fs.existsSync(fullPath)) {
+    fs.mkdirSync(fullPath, { recursive: true });
+  }
+});
+
 const logger = createLogger({
   level: 'info',
   format: combine(label({ label: 'Doctor Portal' }), timestamp(), myFormat),
@@ -21,7 +33,7 @@ const logger = createLogger({
     new transports.Console(),
     new DailyRotateFile({
       filename: path.join(
-        process.cwd(),
+        baseLogPath,
         'logs',
         'successes',
         '%DATE%-success.log',
@@ -40,7 +52,7 @@ const errorLogger = createLogger({
   transports: [
     new transports.Console(),
     new DailyRotateFile({
-      filename: path.join(process.cwd(), 'logs', 'errors', '%DATE%-error.log'),
+      filename: path.join(baseLogPath, 'logs', 'errors', '%DATE%-error.log'),
       datePattern: 'YYYY-DD-MM-HH',
       zippedArchive: true,
       maxSize: '20m',

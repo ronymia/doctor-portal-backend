@@ -244,7 +244,7 @@ model AvailableService {
   slotDate          DateTime         @map("slot_date")
   availableSeats    Int              @map("available_seats")
   isBooked          Boolean          @default(false) @map("is_booked")
-  fees              String
+  fees              Int
   appointments      Appointment[]
   serviceId         String           @map("service_id")
   service           Service          @relation(fields: [serviceId], references: [id])

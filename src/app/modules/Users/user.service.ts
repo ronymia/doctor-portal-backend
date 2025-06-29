@@ -14,6 +14,11 @@ import { TGenericResponse } from '../../../interfaces/response';
 import { paginationHelpers } from '../../../helpers/paginationHelpers';
 import { userSearchableFields } from './user.constant';
 import { TPaginationOptions } from '../../../interfaces/pagination';
+import {
+  generateAdminId,
+  generateDoctorId,
+  generatePatientId,
+} from './user.utils';
 
 //INSERT TO DATABASE
 const createAdminIntoDB = async (
@@ -42,9 +47,13 @@ const createAdminIntoDB = async (
       delete (newUser as Partial<User>).password;
     }
 
+    const adminId = await generateAdminId();
     // CREATE ADMIN
     await transactionClient.admin.create({
-      data: { userId: newUser.id },
+      data: {
+        adminId,
+        userId: newUser.id,
+      },
     });
 
     // CREATE PROFILE
@@ -94,8 +103,9 @@ const createDoctorIntoDB = async (payload: IDoctorCreate): Promise<User> => {
 
     // CREATE DOCTOR
     doctor.userId = newUser.id;
+    const doctorId = await generateDoctorId();
     const newDoctor = await transactionClient.doctor.create({
-      data: doctor as Doctor,
+      data: { doctorId, ...doctor },
     });
     if (!newDoctor) {
       throw new AppError(httpStatus.BAD_REQUEST, 'Failed yo create Doctor');
@@ -136,8 +146,9 @@ const createPatientIntoDB = async (payload: IPatientCreate): Promise<User> => {
 
     // CREATE PATIENT
     patient.userId = newUser.id;
+    const patientId = await generatePatientId();
     const newPatient = await transactionClient.patient.create({
-      data: patient as Patient,
+      data: { patientId, ...patient },
     });
     if (!newPatient) {
       throw new AppError(httpStatus.BAD_REQUEST, 'Failed yo create Patient');
