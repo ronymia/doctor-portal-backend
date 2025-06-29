@@ -145,7 +145,7 @@ const cancelAppointment = async (appointmentId: string): Promise<any> => {
         },
       });
 
-      await transactionClient.payment.update({
+      await transactionClient.payment.updateMany({
         where: {
           appointmentId: appointmentId,
         },
@@ -184,7 +184,7 @@ const startAppointment = async (appointmentId: string): Promise<any> => {
 
   const startedAppointment = await prisma.$transaction(
     async (transactionClient) => {
-      await transactionClient.payment.update({
+      await transactionClient.payment.updateMany({
         where: {
           appointmentId,
         },
@@ -204,7 +204,7 @@ const startAppointment = async (appointmentId: string): Promise<any> => {
       });
 
       if (!appointmentToStart) {
-        await transactionClient.payment.update({
+        await transactionClient.payment.updateMany({
           where: {
             appointmentId,
           },

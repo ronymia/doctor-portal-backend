@@ -1,7 +1,7 @@
-import express from "express";
-import validateRequest from "../../middlewares/validateRequest";
-import { PermissionControllers } from "./Permission.controller";
-import { PermissionValidations } from "./permission.validation";
+import express from 'express';
+import validateRequest from '../../middlewares/validateRequest';
+import { PermissionControllers } from './permission.controller';
+import { PermissionValidations } from './permission.validation';
 
 const router = express.Router();
 
@@ -24,9 +24,9 @@ const router = express.Router();
  *********************/
 
 router.post(
-  "/",
+  '/',
   validateRequest(PermissionValidations.createPermissionZodSchema),
-  PermissionControllers.createPermission
+  PermissionControllers.createPermission,
 );
 
 /***************
@@ -47,7 +47,7 @@ router.post(
  *
  *********************/
 
-router.get("/:id", PermissionControllers.getPermissionById);
+router.get('/:id', PermissionControllers.getPermissionById);
 
 /***************
  * @api {post} /products
@@ -67,7 +67,7 @@ router.get("/:id", PermissionControllers.getPermissionById);
  *
  *********************/
 
-router.get("/", PermissionControllers.getAllPermissions);
+router.get('/', PermissionControllers.getAllPermissions);
 
 /***************
  * @api {post} /products
@@ -88,9 +88,9 @@ router.get("/", PermissionControllers.getAllPermissions);
  *********************/
 
 router.patch(
-  "/:id",
+  '/:id',
   validateRequest(PermissionValidations.updatePermissionZodSchema),
-  PermissionControllers.updatePermission
+  PermissionControllers.updatePermission,
 );
 
 /***************
@@ -111,6 +111,6 @@ router.patch(
  *
  *********************/
 
-router.delete("/:id", PermissionControllers.deletePermission);
+router.delete('/:id', PermissionControllers.deletePermission);
 
 export const PermissionRoutes = router;

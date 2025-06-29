@@ -78,7 +78,7 @@ const getAllTimeSlotsFromDB = async (
         },
         where: whereCondition,
         include: {
-          doctorSchedule: true,
+          // doctorSchedule: true,
           availableDoctors: true,
         },
       })
@@ -88,7 +88,7 @@ const getAllTimeSlotsFromDB = async (
         },
         where: whereCondition,
         include: {
-          doctorSchedule: true,
+          // doctorSchedule: true,
           availableDoctors: true,
         },
       });

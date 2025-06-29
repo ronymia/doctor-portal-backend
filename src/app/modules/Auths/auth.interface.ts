@@ -11,13 +11,7 @@ export type TLoginUser = {
 export type TLoginUserResponse = {
   access_token: string;
   refresh_token?: string;
-  user: {
-    id: string;
-    role: User['role'];
-    status: User['status'];
-    phone_number: User['phone_number'];
-    email: User['email'];
-  };
+  user: Partial<User>;
 };
 
 export type TRefreshTokenResponse = {
