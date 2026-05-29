@@ -8,23 +8,41 @@ import { prisma } from './shared/prisma';
 import seedSuperAdmin from './app/DB/seedSuperAdmin';
 
 async function bootstrap() {
-  // CHECK DATABASE CONNECTION
-  prisma.$connect().then(() => {
+  let server: Server;
+
+  try {
+    // 1. CHRONOLOGICAL DATABASE CONNECTION
+    await prisma.$connect();
     config.node_env === 'development'
-      ? console.log('Database connected')
-      : logger.info('Database connected');
+      ? console.log('Database connected successfully')
+      : logger.info('Database connected successfully');
 
-    // SEED SUPER ADMIN
-    seedSuperAdmin();
-  });
+    // 2. AWAIT SEED SUPER ADMIN (Guarantees this runs sequentially)
+    if (config.node_env === 'development') {
+      console.log('Checking and seeding Super Admin...');
+    }
+    await seedSuperAdmin();
+    if (config.node_env === 'development') {
+      console.log('Super Admin verification complete.');
+    }
 
-  // SERVER
-  const server: Server = app.listen(config.port, () => {
+    // 3. START EXPRESS SERVER (Only fires up if steps 1 & 2 pass)
+    server = app.listen(config.port, () => {
+      config.node_env === 'development'
+        ? console.log(`Server running on port ${config.port}`)
+        : logger.info(`Server running on port ${config.port}`);
+    });
+  } catch (error) {
     config.node_env === 'development'
-      ? console.log(`Server running on port ${config.port}`)
-      : logger.info(`Server running on port ${config.port}`);
-  });
+      ? console.error('❌ Bootstrap sequence failed:', error)
+      : errorLogger.error('Bootstrap sequence failed:', error);
 
+    // Cleanly close out the DB connection if booting fails
+    await prisma.$disconnect();
+    process.exit(1);
+  }
+
+  // --- EXIT & ERROR HANDLERS ---
   const exitHandler = () => {
     if (server) {
       server.close(() => {

@@ -1,4 +1,4 @@
-import { Patient, Prisma } from '@prisma/client';
+import { Patient, Prisma } from '../../../../generated/prisma';
 import { prisma } from '../../../shared/prisma';
 import { paginationHelpers } from '../../../helpers/paginationHelpers';
 import { patientSearchableFields } from './patient.constant';

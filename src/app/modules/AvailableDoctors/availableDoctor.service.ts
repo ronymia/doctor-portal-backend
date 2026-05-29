@@ -1,4 +1,4 @@
-import { AvailableDoctor, Prisma } from '@prisma/client';
+import { AvailableDoctor, Prisma } from '../../../../generated/prisma';
 import { prisma } from '../../../shared/prisma';
 import { TAvailableDoctorFilterRequest } from './availableDoctor.interface';
 import { TPaginationOptions } from '../../../interfaces/pagination';
@@ -49,7 +49,7 @@ const getAllAvailableDoctorsFromDB = async (
   const { searchTerm, ...filtersData } = filters;
 
   // Search and filter condition
-  const andConditions = [];
+  const andConditions: Prisma.AvailableDoctorWhereInput[] = [];
 
   // Search in Field
   if (searchTerm) {
@@ -59,18 +59,29 @@ const getAllAvailableDoctorsFromDB = async (
           contains: searchTerm,
           mode: 'insensitive',
         },
-      })),
+      })) as Prisma.AvailableDoctorWhereInput[],
     });
   }
 
   // field Filtering
   if (Object.keys(filtersData).length) {
     andConditions.push({
-      AND: Object.entries(filtersData).map(([field, value]) => ({
-        [field]: {
-          equals: value,
-        },
-      })),
+      AND: Object.entries(filtersData).map(([field, value]) => {
+        if (field === 'specializations' || field === 'specializationId') {
+          return {
+            doctor: {
+              specializationId: {
+                equals: value as string,
+              },
+            },
+          };
+        }
+        return {
+          [field]: {
+            equals: value,
+          },
+        };
+      }) as Prisma.AvailableDoctorWhereInput[],
     });
   }
 

@@ -1,36 +1,35 @@
-import { Request, RequestHandler, Response } from "express";
-import { Permission } from "@prisma/client";
-import httpStatus from "http-status";
-import { PermissionServices } from "./permission.service";
-import catchAsync from "../../../shared/catchAsync";
-import sendResponse from "../../../shared/sendResponse";
-import pick from "../../../shared/pick";
-import { permissionFilterableFields } from "./permission.constant";
-import { paginationFields } from "../../../constants/pagination";
+import { Request, RequestHandler, Response } from 'express';
+import { Permission } from '../../../../generated/prisma';
+import httpStatus from 'http-status';
+import { PermissionServices } from './permission.service';
+import catchAsync from '../../../shared/catchAsync';
+import sendResponse from '../../../shared/sendResponse';
+import pick from '../../../shared/pick';
+import { permissionFilterableFields } from './permission.constant';
+import { paginationFields } from '../../../constants/pagination';
 
 // CREATE CONTROLLER FUNCTION
 const createPermission: RequestHandler = catchAsync(
   async (req: Request, res: Response) => {
     const { ...PermissionData } = req.body; //COPY
     //SEND DATA TO BUSINESS LOGIC
-    const result = await PermissionServices.createPermissionIntoDB(
-      PermissionData
-    );
+    const result =
+      await PermissionServices.createPermissionIntoDB(PermissionData);
 
     //SEND RESPONSE
     sendResponse<Permission>(res, {
       statusCode: httpStatus.CREATED,
       success: true,
-      message: "Permission created Successfully",
+      message: 'Permission created Successfully',
       data: result,
     });
-  }
+  },
 );
 
 // GET BY ID  CONTROLLER FUNCTION
 const getPermissionById: RequestHandler = catchAsync(
   async (req: Request, res: Response) => {
-    const { id } = req.params; //COPY
+    const { id } = req.params as any; //COPY
     //SEND DATA TO BUSINESS LOGIC
     const result = await PermissionServices.getPermissionByIdFromDB(id);
 
@@ -38,10 +37,10 @@ const getPermissionById: RequestHandler = catchAsync(
     sendResponse<Permission>(res, {
       statusCode: httpStatus.OK,
       success: true,
-      message: "Permission retrieved Successfully",
+      message: 'Permission retrieved Successfully',
       data: result,
     });
-  }
+  },
 );
 
 // GET BY ID  CONTROLLER FUNCTION
@@ -52,45 +51,45 @@ const getAllPermissions: RequestHandler = catchAsync(
     //SEND DATA TO BUSINESS LOGIC
     const result = await PermissionServices.getAllPermissionsFromDB(
       filters,
-      paginationOptions
+      paginationOptions,
     );
 
     //SEND RESPONSE
     sendResponse<Permission[]>(res, {
       statusCode: httpStatus.OK,
       success: true,
-      message: "Permission fetch Successfully",
+      message: 'Permission fetch Successfully',
       meta: result.meta,
       data: result.data,
     });
-  }
+  },
 );
 
 // UPDATE CONTROLLER FUNCTION
 const updatePermission: RequestHandler = catchAsync(
   async (req: Request, res: Response) => {
-    const { id } = req.params; //COPY
+    const { id } = req.params as any; //COPY
     const { ...permissionData } = req.body;
     //SEND DATA TO BUSINESS LOGIC
     const result = await PermissionServices.updatePermissionIntoDB(
       id,
-      permissionData
+      permissionData,
     );
 
     //SEND RESPONSE
     sendResponse<Permission>(res, {
       statusCode: httpStatus.OK,
       success: true,
-      message: "Permission update Successfully",
+      message: 'Permission update Successfully',
       data: result,
     });
-  }
+  },
 );
 
 // DELETE CONTROLLER FUNCTION
 const deletePermission: RequestHandler = catchAsync(
   async (req: Request, res: Response) => {
-    const { id } = req.params; //COPY
+    const { id } = req.params as any; //COPY
     //SEND DATA TO BUSINESS LOGIC
     const result = await PermissionServices.deletePermissionFromDB(id);
 
@@ -98,10 +97,10 @@ const deletePermission: RequestHandler = catchAsync(
     sendResponse<Permission>(res, {
       statusCode: httpStatus.OK,
       success: true,
-      message: "Permission Delete Successfully",
+      message: 'Permission Delete Successfully',
       data: result,
     });
-  }
+  },
 );
 
 export const PermissionControllers = {

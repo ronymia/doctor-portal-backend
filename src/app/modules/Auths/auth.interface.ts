@@ -1,4 +1,4 @@
-import { User } from '@prisma/client';
+import { User } from '../../../../generated/prisma';
 import { ENUM_USER_ROLE } from '../../../enums/user';
 
 export type TLoginUser = {

@@ -1,4 +1,4 @@
-import { AvailableDoctor } from '@prisma/client';
+import { AvailableDoctor } from '../../../../generated/prisma';
 import catchAsync from '../../../shared/catchAsync';
 import sendResponse from '../../../shared/sendResponse';
 import httpStatus from 'http-status';

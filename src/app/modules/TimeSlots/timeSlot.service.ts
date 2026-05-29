@@ -1,5 +1,5 @@
 import httpStatus from 'http-status';
-import { TimeSlot, Prisma } from '@prisma/client';
+import { Prisma, TimeSlot } from '../../../../generated/prisma';
 import { TTimeSlotFilters } from './timeSlot.interface';
 import { TPaginationOptions } from '../../../interfaces/pagination';
 import { TGenericResponse } from '../../../interfaces/response';
@@ -8,8 +8,53 @@ import { timeSlotSearchableFields } from './timeSlot.constant';
 import AppError from '../../../errors/AppError';
 import { prisma } from '../../../shared/prisma';
 
+const timeToMinutes = (timeStr: string): number => {
+  const [hours, minutes] = timeStr.split(':').map(Number);
+  return hours * 60 + minutes;
+};
+
+const validateTimeSlot = async (startTime: string, endTime: string, excludeId?: string) => {
+  const newStart = timeToMinutes(startTime);
+  const newEnd = timeToMinutes(endTime);
+
+  if (newStart >= newEnd) {
+    throw new AppError(httpStatus.BAD_REQUEST, 'Start time must be before end time');
+  }
+
+  const existingSlots = await prisma.timeSlot.findMany();
+  for (const slot of existingSlots) {
+    if (excludeId && slot.id === excludeId) continue;
+
+    const extStart = timeToMinutes(slot.startTime);
+    const extEnd = timeToMinutes(slot.endTime);
+
+    // Exact duplicate
+    if (slot.startTime === startTime && slot.endTime === endTime) {
+      throw new AppError(
+        httpStatus.BAD_REQUEST,
+        `Time slot already exists: ${startTime} - ${endTime}`,
+      );
+    }
+
+    // Check overlap
+    const isOverlap =
+      (newStart >= extStart && newStart < extEnd) ||
+      (newEnd > extStart && newEnd <= extEnd) ||
+      (newStart <= extStart && newEnd >= extEnd);
+
+    if (isOverlap) {
+      throw new AppError(
+        httpStatus.BAD_REQUEST,
+        `Time slot overlaps with existing slot (${slot.startTime} - ${slot.endTime})`,
+      );
+    }
+  }
+};
+
 //INSERT TO DATABASE TimeSlot FUNCTION
 const createTimeSlotIntoDB = async (payload: TimeSlot): Promise<TimeSlot> => {
+  await validateTimeSlot(payload.startTime, payload.endTime);
+
   const result = await prisma.timeSlot.create({
     data: payload,
   });
@@ -118,6 +163,13 @@ const updateTimeSlotIntoDB = async (
   });
   if (!isExist) {
     throw new AppError(httpStatus.NOT_FOUND, 'Time Slot not found');
+  }
+
+  // Overlap and bounds check for update
+  if (payload.startTime || payload.endTime) {
+    const finalStart = payload.startTime || isExist.startTime;
+    const finalEnd = payload.endTime || isExist.endTime;
+    await validateTimeSlot(finalStart, finalEnd, id);
   }
 
   // UPDATE ON DATABASE

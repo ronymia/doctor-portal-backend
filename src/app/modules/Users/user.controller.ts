@@ -1,5 +1,5 @@
 import httpStatus from 'http-status';
-import { User } from '@prisma/client';
+import { User } from '../../../../generated/prisma';
 import { Request, RequestHandler, Response } from 'express';
 import catchAsync from '../../../shared/catchAsync';
 import sendResponse from '../../../shared/sendResponse';
@@ -113,10 +113,120 @@ const getAllUsers: RequestHandler = catchAsync(
   },
 );
 
+const approveDoctor: RequestHandler = catchAsync(
+  async (req: Request, res: Response) => {
+    const { id } = req.params;
+    const approverId = (req as any).user.user_id;
+
+    const result = await UserServices.approveDoctorInDB(id as string, approverId);
+
+    sendResponse(res, {
+      statusCode: httpStatus.OK,
+      success: true,
+      message: 'Doctor account approved successfully',
+      data: result,
+    });
+  },
+);
+
+const rejectDoctor: RequestHandler = catchAsync(
+  async (req: Request, res: Response) => {
+    const { id } = req.params;
+    const approverId = (req as any).user.user_id;
+
+    const result = await UserServices.rejectDoctorInDB(id as string, approverId);
+
+    sendResponse(res, {
+      statusCode: httpStatus.OK,
+      success: true,
+      message: 'Doctor account rejected successfully',
+      data: result,
+    });
+  },
+);
+
+const suspendUser: RequestHandler = catchAsync(
+  async (req: Request, res: Response) => {
+    const { id } = req.params;
+    const adminId = (req as any).user.user_id;
+
+    const result = await UserServices.suspendUserInDB(id as string, adminId);
+
+    sendResponse(res, {
+      statusCode: httpStatus.OK,
+      success: true,
+      message: 'User account suspended successfully',
+      data: result,
+    });
+  },
+);
+
+const assignPermissions: RequestHandler = catchAsync(
+  async (req: Request, res: Response) => {
+    const { id } = req.params;
+    const { permissions } = req.body;
+    const adminId = (req as any).user.user_id;
+
+    const result = await UserServices.assignPermissionsToUserInDB(
+      id as string,
+      permissions,
+      adminId,
+    );
+
+    sendResponse(res, {
+      statusCode: httpStatus.OK,
+      success: true,
+      message: 'Permissions assigned successfully',
+      data: result,
+    });
+  },
+);
+
+const removePermissions: RequestHandler = catchAsync(
+  async (req: Request, res: Response) => {
+    const { id } = req.params;
+    const { permissions } = req.body;
+    const adminId = (req as any).user.user_id;
+
+    const result = await UserServices.removePermissionsFromUserInDB(
+      id as string,
+      permissions,
+      adminId,
+    );
+
+    sendResponse(res, {
+      statusCode: httpStatus.OK,
+      success: true,
+      message: 'Permissions removed successfully',
+      data: result,
+    });
+  },
+);
+
+const getUserPermissions: RequestHandler = catchAsync(
+  async (req: Request, res: Response) => {
+    const { id } = req.params;
+    const result = await UserServices.getUserPermissionsFromDB(id as string);
+
+    sendResponse(res, {
+      statusCode: httpStatus.OK,
+      success: true,
+      message: 'User permissions fetched successfully',
+      data: result,
+    });
+  },
+);
+
 // EXPORT
 export const UserControllers = {
   createAdmin,
   createDoctor,
   createPatient,
   getAllUsers,
+  approveDoctor,
+  rejectDoctor,
+  suspendUser,
+  assignPermissions,
+  removePermissions,
+  getUserPermissions,
 };

@@ -5,7 +5,7 @@ import AppError from '../../errors/AppError';
 import { ZodError } from 'zod';
 import config from '../../config';
 import handleZodError from '../../errors/handleZodError';
-import { Prisma } from '@prisma/client';
+import { Prisma } from '../../../generated/prisma';
 import handleValidationError from '../../errors/handleValidationError';
 import handleClientKnownError from '../../errors/handleClientKnownError';
 import { logError } from '../../shared/logError';
@@ -21,7 +21,7 @@ const globalErrorHandler: ErrorRequestHandler = async (
   const token = req.headers['authorization'] || null;
 
   // Extract user ID from auth middleware or token (custom logic)
-  const userId = req.user?.id || null;
+  const userId = (req as any).user?.id || null;
 
   const ipAddress =
     req.headers['x-forwarded-for']?.toString().split(',')[0] ||

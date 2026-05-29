@@ -1,5 +1,5 @@
 import { Request, RequestHandler, Response } from 'express';
-import { Service } from '@prisma/client';
+import { Service } from '../../../../generated/prisma';
 import httpStatus from 'http-status';
 import catchAsync from '../../../shared/catchAsync';
 import { ServiceServices } from './service.service';
@@ -28,7 +28,7 @@ const createService: RequestHandler = catchAsync(
 // GET BY ID  CONTROLLER FUNCTION
 const getServiceById: RequestHandler = catchAsync(
   async (req: Request, res: Response) => {
-    const { id } = req.params; //COPY
+    const { id } = req.params as any; //COPY
     // SEND DATA TO BUSINESS LOGIC
     const result = await ServiceServices.getServiceByIdFromDB(id);
 
@@ -67,7 +67,7 @@ const getAllServices: RequestHandler = catchAsync(
 // UPDATE CONTROLLER FUNCTION
 const updateService: RequestHandler = catchAsync(
   async (req: Request, res: Response) => {
-    const { id } = req.params; //COPY
+    const { id } = req.params as any; //COPY
     const { ...serviceData } = req.body;
     // SEND DATA TO BUSINESS LOGIC
     const result = await ServiceServices.updateServiceIntoDB(id, serviceData);
@@ -85,7 +85,7 @@ const updateService: RequestHandler = catchAsync(
 // DELETE CONTROLLER FUNCTION
 const deleteService: RequestHandler = catchAsync(
   async (req: Request, res: Response) => {
-    const { id } = req.params; //COPY
+    const { id } = req.params as any; //COPY
     // SEND DATA TO BUSINESS LOGIC
     const result = await ServiceServices.deleteServiceFromDB(id);
 

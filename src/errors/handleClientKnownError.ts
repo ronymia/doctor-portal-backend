@@ -1,6 +1,6 @@
-import { Prisma } from '@prisma/client';
 import httpStatus from 'http-status';
 import { TErrorSources } from '../interfaces/error';
+import { Prisma } from '../../generated/prisma';
 
 const handleClientKnownError = (
   error: Prisma.PrismaClientKnownRequestError,

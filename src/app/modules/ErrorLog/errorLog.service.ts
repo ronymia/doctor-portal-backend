@@ -18,7 +18,7 @@ const errorLogs = async (paginationOptions: TPaginationOptions) => {
   });
 
   const total = await prisma.errorLog.count();
-  const totalPage = Math.ceil(total / limit);
+  const totalPage = limit ? Math.ceil(total / limit) : 1;
 
   return {
     meta: {

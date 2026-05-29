@@ -1,10 +1,10 @@
 generator client {
   provider = "prisma-client-js"
+  output   = "../generated/prisma"
 }
 
 datasource db {
   provider = "postgresql"
-  url      = env("DATABASE_URL")
 }
 
 enum UserAccountStatus {
@@ -14,6 +14,13 @@ enum UserAccountStatus {
   SUSPENDED //  temporary restriction
   BLOCKED // User is banned or restricted
   DELETED // account deleted
+}
+
+enum UserRole {
+  SUPER_ADMIN
+  ADMIN
+  DOCTOR
+  PATIENT
 }
 
 enum AppointmentStatus {
@@ -77,7 +84,7 @@ model User {
   email                   String            @unique
   phoneNumber             String            @unique @map("phone_number")
   password                String
-  role                    String
+  role                    UserRole
   isPasswordResetRequired Boolean           @default(true) @map("is_password_reset_required")
   status                  UserAccountStatus @default(PENDING_VERIFICATION)
   userPermissions         UserPermission[]
@@ -86,9 +93,16 @@ model User {
   profile                 Profile?
   doctor                  Doctor?
 
+  approvedBy              String?           @map("approved_by")
+  approvedAt              DateTime?         @map("approved_at")
+  createdBy               String?           @map("created_by")
+  updatedBy               String?           @map("updated_by")
+
   createdAt DateTime @default(now()) @map("created_at")
   updatedAt DateTime @updatedAt @map("updated_at")
 
+  @@index([role])
+  @@index([status])
   @@map("users")
 }
 
@@ -257,6 +271,7 @@ model AvailableService {
   updatedAt DateTime @updatedAt @map("updated_at")
 
   @@unique([slotId, serviceId, slotDate, availableDoctorId])
+  @@index([slotDate])
   @@map("available_services")
 }
 
@@ -274,6 +289,7 @@ model Appointment {
   updatedAt DateTime @updatedAt @map("updated_at")
 
   @@map("appointments")
+  @@index([appointmentDate])
 }
 
 model Payment {
@@ -304,4 +320,14 @@ model MedicalRecord {
 
   createdAt DateTime @default(now()) @map("created_at")
   updatedAt DateTime @updatedAt @map("updated_at")
+}
+
+model AuditLog {
+  id          String   @id @default(uuid())
+  action      String
+  details     String?
+  performedBy String   @map("performed_by")
+  createdAt   DateTime @default(now()) @map("created_at")
+
+  @@map("audit_logs")
 }

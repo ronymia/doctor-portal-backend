@@ -1,37 +1,37 @@
-import { Gender } from '@prisma/client';
+import { Gender } from '../../../../generated/prisma';
 import { z } from 'zod';
 
 // ADMIN
 const createAdminZodSchema = z.object({
   email: z.string({
-    required_error: 'email is required',
+    message: 'email is required',
   }),
   phoneNumber: z.string({
-    required_error: 'phoneNumber is required',
+    message: 'phoneNumber is required',
   }),
   password: z
     .string({
-      required_error: 'password is required',
+      message: 'password is required',
     })
     .optional(),
   profile: z.object({
     fullName: z.string({
-      required_error: 'fullName is required',
+      message: 'fullName is required',
     }),
     joiningDate: z.string({
-      required_error: 'joiningDate is required',
+      message: 'joiningDate is required',
     }),
     gender: z.enum(Object.values(Gender) as [string, ...string[]], {
-      required_error: 'gender is required',
+      message: 'gender is required',
     }),
     address: z.string({
-      required_error: 'address is required',
+      message: 'address is required',
     }),
     dateOfBirth: z.string({
-      required_error: 'dateOfBirth is required',
+      message: 'dateOfBirth is required',
     }),
     profilePicture: z.string({
-      required_error: 'profilePicture is required',
+      message: 'profilePicture is required',
     }),
   }),
 });
@@ -39,42 +39,42 @@ const createAdminZodSchema = z.object({
 // ADMIN
 const createDoctorZodSchema = z.object({
   email: z.string({
-    required_error: 'email is required',
+    message: 'email is required',
   }),
   phoneNumber: z.string({
-    required_error: 'phoneNumber is required',
+    message: 'phoneNumber is required',
   }),
   password: z
     .string({
-      required_error: 'password is required',
+      message: 'password is required',
     })
     .optional(),
   doctor: z.object({
     specializationId: z.string({
-      required_error: 'specializationId is required',
+      message: 'specializationId is required',
     }),
     qualification: z.string({
-      required_error: 'qualification is required',
+      message: 'qualification is required',
     }),
   }),
   profile: z.object({
     fullName: z.string({
-      required_error: 'fullName is required',
+      message: 'fullName is required',
     }),
     joiningDate: z.string({
-      required_error: 'joiningDate is required',
+      message: 'joiningDate is required',
     }),
     gender: z.enum(Object.values(Gender) as [string, ...string[]], {
-      required_error: 'gender is required',
+      message: 'gender is required',
     }),
     address: z.string({
-      required_error: 'address is required',
+      message: 'address is required',
     }),
     dateOfBirth: z.string({
-      required_error: 'dateOfBirth is required',
+      message: 'dateOfBirth is required',
     }),
     profilePicture: z.string({
-      required_error: 'profilePicture is required',
+      message: 'profilePicture is required',
     }),
   }),
 });
@@ -82,42 +82,42 @@ const createDoctorZodSchema = z.object({
 // PATIENT
 const createPatientZodSchema = z.object({
   email: z.string({
-    required_error: 'email is required',
+    message: 'email is required',
   }),
   phoneNumber: z.string({
-    required_error: 'phoneNumber is required',
+    message: 'phoneNumber is required',
   }),
   password: z
     .string({
-      required_error: 'password is required',
+      message: 'password is required',
     })
     .optional(),
   patient: z.object({
     medicalHistory: z.string({
-      required_error: 'medicalHistory is required',
+      message: 'medicalHistory is required',
     }),
     emergencyContact: z.string({
-      required_error: 'emergencyContact is required',
+      message: 'emergencyContact is required',
     }),
   }),
   profile: z.object({
     fullName: z.string({
-      required_error: 'fullName is required',
+      message: 'fullName is required',
     }),
     joiningDate: z.string({
-      required_error: 'joiningDate is required',
+      message: 'joiningDate is required',
     }),
     gender: z.enum(Object.values(Gender) as [string, ...string[]], {
-      required_error: 'gender is required',
+      message: 'gender is required',
     }),
     address: z.string({
-      required_error: 'address is required',
+      message: 'address is required',
     }),
     dateOfBirth: z.string({
-      required_error: 'dateOfBirth is required',
+      message: 'dateOfBirth is required',
     }),
     profilePicture: z.string({
-      required_error: 'profilePicture is required',
+      message: 'profilePicture is required',
     }),
   }),
 });

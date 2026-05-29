@@ -3,8 +3,7 @@ import { z } from 'zod';
 const createPermissionZodSchema = z.object({
   body: z.object({
     name: z.string({
-      required_error: 'Permission name is required',
-      invalid_type_error: 'Permission name must be string',
+      message: 'Permission name is required',
     }),
   }),
 });
@@ -12,8 +11,7 @@ const updatePermissionZodSchema = z.object({
   body: z.object({
     name: z
       .string({
-        required_error: 'Permission name is required',
-        invalid_type_error: 'Permission name must be string',
+        message: 'Permission name must be string',
       })
       .optional(),
   }),

@@ -1,4 +1,4 @@
-import { Gender, UserAccountStatus } from '@prisma/client';
+import { Gender, UserAccountStatus } from '../../../../generated/prisma';
 
 export type TUserFilterRequest = {
   searchTerm?: string;
