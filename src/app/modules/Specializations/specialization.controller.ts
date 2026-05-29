@@ -1,5 +1,5 @@
 import { Request, Response } from 'express';
-import { Specialization } from '@prisma/client';
+import { Specialization } from '../../../../generated/prisma';
 import httpStatus from 'http-status';
 import catchAsync from '../../../shared/catchAsync';
 import { SpecializationServices } from './specialization.service';
@@ -27,7 +27,7 @@ const createSpecialization = catchAsync(async (req: Request, res: Response) => {
 // GET BY ID  CONTROLLER FN
 const getSpecializationById = catchAsync(
   async (req: Request, res: Response) => {
-    const { id } = req.params; //COPY
+    const { id } = req.params as any; //COPY
     //SEND DATA TO BUSINESS LOGIC
     const result = await SpecializationServices.getSpecializationByIdFromDB(id);
 
@@ -65,7 +65,7 @@ const getAllSpecializations = catchAsync(
 
 // UPDATE CONTROLLER FUNCTION
 const updateSpecialization = catchAsync(async (req: Request, res: Response) => {
-  const { id } = req.params; //COPY
+  const { id } = req.params as any; //COPY
   const { ...specializationData } = req.body;
   //SEND DATA TO BUSINESS LOGIC
   const result = await SpecializationServices.updateSpecializationIntoDB(
@@ -84,7 +84,7 @@ const updateSpecialization = catchAsync(async (req: Request, res: Response) => {
 
 // DELETE CONTROLLER FUNCTION
 const deleteSpecialization = catchAsync(async (req: Request, res: Response) => {
-  const { id } = req.params; //COPY
+  const { id } = req.params as any; //COPY
   //SEND DATA TO BUSINESS LOGIC
   const result = await SpecializationServices.deleteSpecializationFromDB(id);
 

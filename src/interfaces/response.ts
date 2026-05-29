@@ -1,5 +1,5 @@
 export type TMeta = {
-  limit: number;
+  limit?: number;
   page: number;
   total: number;
   queryTotal?: number;

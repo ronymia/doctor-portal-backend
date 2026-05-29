@@ -10,7 +10,7 @@ import { PasswordHelpers } from '../../../helpers/passwordHelpers';
 import { JwtHelpers } from '../../../helpers/jwtHelpers';
 import config from '../../../config';
 import { prisma } from '../../../shared/prisma';
-import { User, UserAccountStatus } from '@prisma/client';
+import { User, UserAccountStatus } from '../../../../generated/prisma';
 
 // LOGIN USER
 const loginUser = async (payload: TLoginUser): Promise<TLoginUserResponse> => {
@@ -20,7 +20,11 @@ const loginUser = async (payload: TLoginUser): Promise<TLoginUserResponse> => {
     where: { email: payload.email },
     include: {
       profile: true,
-      userPermissions: true,
+      userPermissions: {
+        include: {
+          permission: true,
+        },
+      },
     },
   });
   // IF NOT EXIST
@@ -41,19 +45,22 @@ const loginUser = async (payload: TLoginUser): Promise<TLoginUserResponse> => {
     throw new AppError(httpStatus.UNAUTHORIZED, 'Password do not match');
   }
 
+  // GET PERMISSION NAMES
+  const permissions = user?.userPermissions?.map((up) => up.permission.name) || [];
+
   // CREATE JWT access_token
   // eslint-disable-next-line no-unused-vars, @typescript-eslint/no-unused-vars
   const { id: user_id, role, password, ...rest } = user;
 
   // CREATE access_token
   const accessToken = JwtHelpers.createToken(
-    { user_id, role },
+    { user_id, role, permissions },
     config.jwt.secret as Secret,
     config.jwt.expires_in as string,
   );
   // CREATE refresh_token
   const refreshToken = JwtHelpers.createToken(
-    { user_id, role },
+    { user_id, role, permissions },
     config.jwt.refresh_secret as Secret,
     config.jwt.refresh_expires_in as string,
   );
@@ -63,10 +70,16 @@ const loginUser = async (payload: TLoginUser): Promise<TLoginUserResponse> => {
     delete (user as Partial<User>).password;
   }
 
+  // Attach clean permissions array
+  const userWithPermissions = {
+    ...user,
+    permissions,
+  };
+
   return {
     access_token: accessToken,
     refresh_token: refreshToken,
-    user,
+    user: userWithPermissions as any,
   };
 };
 
@@ -92,20 +105,30 @@ const refreshToken = async (token: string): Promise<TRefreshTokenResponse> => {
   //
   const user = await prisma.user.findUnique({
     where: { id: user_id },
+    include: {
+      userPermissions: {
+        include: {
+          permission: true,
+        },
+      },
+    },
   });
   //
   if (!user) {
     throw new AppError(httpStatus.NOT_FOUND, ' User not found');
   }
 
+  const permissions = user?.userPermissions?.map((up) => up.permission.name) || [];
+
   // GENERATE NEW ACCESS TOKEN
   const newAccessToken = JwtHelpers.createToken(
     {
       user_id,
       role: user?.role,
+      permissions,
     },
-    config.jwt.refresh_secret as Secret,
-    config.jwt.refresh_expires_in as string,
+    config.jwt.secret as Secret,
+    config.jwt.expires_in as string,
   );
 
   //

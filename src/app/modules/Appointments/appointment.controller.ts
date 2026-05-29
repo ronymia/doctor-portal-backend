@@ -1,5 +1,5 @@
 import { Request, Response } from 'express';
-import { Appointment } from '@prisma/client';
+import { Appointment } from '../../../../generated/prisma';
 import httpStatus from 'http-status';
 import catchAsync from '../../../shared/catchAsync';
 import sendResponse from '../../../shared/sendResponse';
@@ -26,7 +26,7 @@ const bookAppointmentIntoDB = catchAsync(
 );
 // CREATE CONTROLLER FN
 const cancelAppointment = catchAsync(async (req: Request, res: Response) => {
-  const { id } = req.params; //COPY
+  const { id } = req.params as any; //COPY
   // SEND DATA TO BUSINESS LOGIC
   const result = await AppointmentServices.cancelAppointment(id);
 
@@ -40,7 +40,7 @@ const cancelAppointment = catchAsync(async (req: Request, res: Response) => {
 });
 // CREATE CONTROLLER FN
 const startAppointment = catchAsync(async (req: Request, res: Response) => {
-  const { id } = req.params; //COPY
+  const { id } = req.params as any; //COPY
   // SEND DATA TO BUSINESS LOGIC
   const result = await AppointmentServices.startAppointment(id);
 
@@ -54,7 +54,7 @@ const startAppointment = catchAsync(async (req: Request, res: Response) => {
 });
 // CREATE CONTROLLER FN
 const finishAppointment = catchAsync(async (req: Request, res: Response) => {
-  const { id } = req.params; //COPY
+  const { id } = req.params as any; //COPY
   // SEND DATA TO BUSINESS LOGIC
   const result = await AppointmentServices.finishAppointment(id);
 
@@ -69,7 +69,7 @@ const finishAppointment = catchAsync(async (req: Request, res: Response) => {
 
 // GET BY ID  CONTROLLER FN
 const getAppointmentById = catchAsync(async (req: Request, res: Response) => {
-  const { id } = req.params; //COPY
+  const { id } = req.params as any; //COPY
   //SEND DATA TO BUSINESS LOGIC
   const result = await AppointmentServices.getAppointmentByIdFromDB(id);
 
@@ -104,7 +104,7 @@ const getAllAppointments = catchAsync(async (req: Request, res: Response) => {
 
 // UPDATE CONTROLLER FUNCTION
 const updateAppointment = catchAsync(async (req: Request, res: Response) => {
-  const { id } = req.params; //COPY
+  const { id } = req.params as any; //COPY
   const { ...payloadData } = req.body;
   //SEND DATA TO BUSINESS LOGIC
   const result = await AppointmentServices.updateAppointmentIntoDB(
@@ -123,7 +123,7 @@ const updateAppointment = catchAsync(async (req: Request, res: Response) => {
 
 // DELETE CONTROLLER FUNCTION
 const deleteAppointment = catchAsync(async (req: Request, res: Response) => {
-  const { id } = req.params; //COPY
+  const { id } = req.params as any; //COPY
   //SEND DATA TO BUSINESS LOGIC
   const result = await AppointmentServices.deleteAppointmentFromDB(id);
 

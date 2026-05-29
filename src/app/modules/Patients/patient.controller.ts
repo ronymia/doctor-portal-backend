@@ -1,4 +1,4 @@
-import { Patient } from '@prisma/client';
+import { Patient } from '../../../../generated/prisma';
 import { paginationFields } from '../../../constants/pagination';
 import catchAsync from '../../../shared/catchAsync';
 import pick from '../../../shared/pick';

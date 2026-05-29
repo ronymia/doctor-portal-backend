@@ -1,4 +1,4 @@
-// import { DoctorSchedule } from '@prisma/client';
+// import { DoctorSchedule } from '../../../../generated/prisma';
 // import { prisma } from '../../../shared/prisma';
 
 // const createDoctorSchedule = async (

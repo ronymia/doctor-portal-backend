@@ -1,5 +1,5 @@
 import httpStatus from 'http-status';
-import { Prisma, Service } from '@prisma/client';
+import { Prisma, Service } from '../../../../generated/prisma';
 import { TServiceFilters } from './service.interface';
 import { TPaginationOptions } from '../../../interfaces/pagination';
 import { TGenericResponse } from '../../../interfaces/response';

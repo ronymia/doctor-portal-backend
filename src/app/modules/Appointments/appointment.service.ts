@@ -4,7 +4,7 @@ import {
   Appointment,
   PaymentStatus,
   AppointmentStatus,
-} from '@prisma/client';
+} from '../../../../generated/prisma';
 import { prisma } from '../../../shared/prisma';
 import { TPaginationOptions } from '../../../interfaces/pagination';
 import { paginationHelpers } from '../../../helpers/paginationHelpers';

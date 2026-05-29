@@ -10,6 +10,7 @@ import { AppointmentRoutes } from '../modules/Appointments/appointment.route';
 import { errorRoutes } from '../modules/ErrorLog/errorLog.route';
 import { PatientRoutes } from '../modules/Patients/patient.route';
 import { AvailableDoctorRoutes } from '../modules/AvailableDoctors/availableDoctor.route';
+import { AdminRoutes } from '../modules/Admins/admin.route';
 
 const router = express.Router();
 
@@ -26,6 +27,10 @@ const moduleRoutes = [
   {
     path: '/v1.0/users',
     route: UserRoutes,
+  },
+  {
+    path: '/v1.0/admins',
+    route: AdminRoutes,
   },
   {
     path: '/v1.0/patients',

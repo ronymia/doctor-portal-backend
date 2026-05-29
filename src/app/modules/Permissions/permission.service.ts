@@ -1,13 +1,12 @@
 import httpStatus from 'http-status';
-import { Permission, PrismaClient, Prisma } from '@prisma/client';
+import { Permission, Prisma } from '../../../../generated/prisma';
 import { TGenericResponse } from '../../../interfaces/response';
 import { paginationHelpers } from '../../../helpers/paginationHelpers';
 import { TPermissionFilters } from './permission.interface';
 import { TPaginationOptions } from '../../../interfaces/pagination';
 import AppError from '../../../errors/AppError';
 import { permissionSearchableFields } from './permission.constant';
-
-const prisma = new PrismaClient();
+import { prisma } from '../../../shared/prisma';
 
 //INSERT TO DATABASE
 const createPermissionIntoDB = async (

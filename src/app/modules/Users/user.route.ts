@@ -109,4 +109,40 @@ router.post(
 
 router.route('/').get(UserControllers.getAllUsers);
 
+router.patch(
+  '/:id/approve-doctor',
+  auth(ENUM_USER_ROLE.SUPER_ADMIN, ENUM_USER_ROLE.ADMIN),
+  UserControllers.approveDoctor,
+);
+
+router.patch(
+  '/:id/reject-doctor',
+  auth(ENUM_USER_ROLE.SUPER_ADMIN, ENUM_USER_ROLE.ADMIN),
+  UserControllers.rejectDoctor,
+);
+
+router.patch(
+  '/:id/suspend-user',
+  auth(ENUM_USER_ROLE.SUPER_ADMIN),
+  UserControllers.suspendUser,
+);
+
+router.post(
+  '/:id/assign-permissions',
+  auth(ENUM_USER_ROLE.SUPER_ADMIN),
+  UserControllers.assignPermissions,
+);
+
+router.post(
+  '/:id/remove-permissions',
+  auth(ENUM_USER_ROLE.SUPER_ADMIN),
+  UserControllers.removePermissions,
+);
+
+router.get(
+  '/:id/permissions',
+  auth(ENUM_USER_ROLE.SUPER_ADMIN),
+  UserControllers.getUserPermissions,
+);
+
 export const UserRoutes = router;

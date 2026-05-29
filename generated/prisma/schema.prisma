@@ -1,0 +1,333 @@
+generator client {
+  provider = "prisma-client-js"
+  output   = "../generated/prisma"
+}
+
+datasource db {
+  provider = "postgresql"
+}
+
+enum UserAccountStatus {
+  ACTIVE // User can log in and use the app
+  INACTIVE // Account exists but is temporarily paused
+  PENDING_VERIFICATION // requires email/phone/identity verification before activation.
+  SUSPENDED //  temporary restriction
+  BLOCKED // User is banned or restricted
+  DELETED // account deleted
+}
+
+enum UserRole {
+  SUPER_ADMIN
+  ADMIN
+  DOCTOR
+  PATIENT
+}
+
+enum AppointmentStatus {
+  SCHEDULED // Future appointment booked
+  COMPLETED // Appointment finished
+  CANCELLED // User or system cancelled it
+  NO_SHOW // Patient missed it
+  RESCHEDULED // Appointment moved to new time
+  PENDING_PAYMENT // Payment required before confirmation
+}
+
+enum PaymentStatus {
+  PENDING // Payment is initiated but not completed
+  PAID // Payment completed successfully
+  FAILED // Payment attempt failed
+  REFUNDED // Payment was completed, then refunded
+  CANCELLED // Payment was cancelled before completion
+}
+
+enum Gender {
+  MALE
+  FEMALE
+  OTHER
+}
+
+model ErrorLog {
+  id         Int      @id @default(autoincrement())
+  userId     String?
+  token      String?
+  ipAddress  String?
+  errorStack String
+  payload    Json?
+  timestamp  DateTime @default(now())
+
+  @@map("error_logs")
+}
+
+model Permission {
+  id              String           @id @default(uuid())
+  name            String           @unique
+  userPermissions UserPermission[]
+
+  createdAt DateTime @default(now()) @map("created_at")
+  updatedAt DateTime @updatedAt @map("updated_at")
+
+  @@map("permissions")
+}
+
+model UserPermission {
+  permission   Permission @relation(fields: [permissionId], references: [id])
+  permissionId String     @map("permission_id")
+  user         User       @relation(fields: [userId], references: [id])
+  userId       String     @map("user_id")
+
+  @@id([permissionId, userId])
+  @@map("user_permissions")
+}
+
+model User {
+  id                      String            @id @default(uuid())
+  email                   String            @unique
+  phoneNumber             String            @unique @map("phone_number")
+  password                String
+  role                    UserRole
+  isPasswordResetRequired Boolean           @default(true) @map("is_password_reset_required")
+  status                  UserAccountStatus @default(PENDING_VERIFICATION)
+  userPermissions         UserPermission[]
+  patient                 Patient?
+  admin                   Admin?
+  profile                 Profile?
+  doctor                  Doctor?
+
+  approvedBy String?   @map("approved_by")
+  approvedAt DateTime? @map("approved_at")
+  createdBy  String?   @map("created_by")
+  updatedBy  String?   @map("updated_by")
+
+  createdAt DateTime @default(now()) @map("created_at")
+  updatedAt DateTime @updatedAt @map("updated_at")
+
+  @@index([role])
+  @@index([status])
+  @@map("users")
+}
+
+model Doctor {
+  id               String            @id @default(uuid())
+  doctorId         String            @unique @map("doctor_id")
+  doctor           User              @relation(fields: [userId], references: [id])
+  userId           String            @unique @map("user_id")
+  specialization   Specialization    @relation(fields: [specializationId], references: [id])
+  specializationId String            @map("specialization_id")
+  qualification    String
+  availableDoctors AvailableDoctor[]
+  doctorProfile    DoctorProfile?
+  medicalRecord    MedicalRecord[]
+
+  createdAt DateTime @default(now()) @map("createdAt")
+  updatedAt DateTime @updatedAt @map("updatedAt")
+
+  @@map("doctors")
+}
+
+model Patient {
+  id               String          @id @default(uuid())
+  patientId        String          @unique @map("patient_id")
+  patient          User            @relation(fields: [userId], references: [id])
+  userId           String          @unique @map("user_id")
+  medicalHistory   String          @map("medical_history")
+  emergencyContact String          @map("emergency_contact")
+  patientProfile   PatientProfile?
+  appointments     Appointment[]
+  medicalRecord    MedicalRecord[]
+
+  createdAt DateTime @default(now()) @map("created_at")
+  updatedAt DateTime @updatedAt @map("updated_at")
+
+  @@map("patients")
+}
+
+model Admin {
+  id      String @id @default(uuid())
+  adminId String @unique @map("admin_id")
+  user    User   @relation(fields: [userId], references: [id])
+  userId  String @unique @map("user_id")
+
+  createdAt DateTime @default(now()) @map("created_at")
+  updatedAt DateTime @updatedAt @map("updated_at")
+
+  @@map("admins")
+}
+
+model Profile {
+  id             String   @id @default(uuid())
+  user           User     @relation(fields: [userId], references: [id])
+  userId         String   @unique @map("user_id")
+  fullName       String   @map("full_name")
+  profilePicture String?  @map("profile_picture")
+  address        String
+  dateOfBirth    DateTime @map("date_of_birth")
+  joiningDate    DateTime @map("joining_date")
+  gender         Gender
+
+  createdAt DateTime @default(now()) @map("created_at")
+  updatedAt DateTime @updatedAt @map("updated_at")
+
+  @@map("profiles")
+}
+
+model DoctorProfile {
+  id                String @id @default(uuid())
+  doctor            Doctor @relation(fields: [doctorId], references: [id])
+  doctorId          String @unique
+  licenseNumber     String
+  yearsOfExperience Int
+
+  createdAt DateTime @default(now()) @map("created_at")
+  updatedAt DateTime @updatedAt @map("updated_at")
+
+  @@map("doctor_profiles")
+}
+
+model PatientProfile {
+  id              String  @id @default(uuid())
+  patient         Patient @relation(fields: [patientId], references: [id])
+  patientId       String  @unique
+  bloodGroup      String?
+  weight          Float?
+  height          Float?
+  allergies       String?
+  chronicDiseases String?
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+}
+
+model Specialization {
+  id          String    @id @default(uuid())
+  name        String    @unique
+  description String?
+  doctors     Doctor[]
+  services    Service[]
+
+  createdAt DateTime @default(now()) @map("created_at")
+  updatedAt DateTime @updatedAt @map("updated_at")
+
+  @@map("specializations")
+}
+
+model Service {
+  id                String             @id @default(uuid())
+  name              String             @unique
+  description       String
+  specialization    Specialization     @relation(fields: [specializationId], references: [id])
+  specializationId  String             @map("specialization_id")
+  availableServices AvailableService[]
+
+  createdAt DateTime @default(now()) @map("created_at")
+  updatedAt DateTime @updatedAt @map("updated_at")
+
+  @@map("services")
+}
+
+model TimeSlot {
+  id               String             @id @default(uuid())
+  startTime        String             @map("start_time")
+  endTime          String             @map("end_time")
+  availableDoctors AvailableDoctor[]
+  availableService AvailableService[]
+
+  createdAt DateTime @default(now()) @map("created_at")
+  updatedAt DateTime @updatedAt @map("updated_at")
+
+  @@map("time_slots")
+}
+
+model AvailableDoctor {
+  id                String             @id @default(uuid())
+  availableDate     DateTime           @map("available_date")
+  availableServices AvailableService[]
+  doctorId          String             @map("doctor_id")
+  doctor            Doctor             @relation(fields: [doctorId], references: [id])
+  slotId            String             @map("slot_id")
+  slot              TimeSlot           @relation(fields: [slotId], references: [id])
+
+  createdAt DateTime @default(now()) @map("created_at")
+  updatedAt DateTime @updatedAt @map("updated_at")
+
+  @@unique([doctorId, slotId, availableDate])
+  @@map("available_doctors")
+}
+
+model AvailableService {
+  id                String           @id @default(uuid())
+  slotDate          DateTime         @map("slot_date")
+  availableSeats    Int              @map("available_seats")
+  isBooked          Boolean          @default(false) @map("is_booked")
+  fees              Int
+  appointments      Appointment[]
+  serviceId         String           @map("service_id")
+  service           Service          @relation(fields: [serviceId], references: [id])
+  slotId            String           @map("slot_id")
+  slot              TimeSlot         @relation(fields: [slotId], references: [id])
+  availableDoctorId String           @map("available_doctor_id")
+  availableDoctor   AvailableDoctor? @relation(fields: [availableDoctorId], references: [id])
+
+  createdAt DateTime @default(now()) @map("created_at")
+  updatedAt DateTime @updatedAt @map("updated_at")
+
+  @@unique([slotId, serviceId, slotDate, availableDoctorId])
+  @@index([slotDate])
+  @@map("available_services")
+}
+
+model Appointment {
+  id                 String            @id @default(uuid())
+  patient            Patient           @relation(fields: [patientId], references: [id])
+  patientId          String            @map("patient_id")
+  availableServiceId String            @map("available_service_id")
+  appointmentDate    DateTime          @map("appointment_date")
+  status             AppointmentStatus @default(SCHEDULED)
+  payments           Payment[]
+  availableService   AvailableService  @relation(fields: [availableServiceId], references: [id])
+
+  createdAt DateTime @default(now()) @map("created_at")
+  updatedAt DateTime @updatedAt @map("updated_at")
+
+  @@index([appointmentDate])
+  @@map("appointments")
+}
+
+model Payment {
+  id            String        @id @default(uuid())
+  appointment   Appointment   @relation(fields: [appointmentId], references: [id])
+  appointmentId String        @map("appointment_id")
+  amount        Int
+  paymentDate   DateTime?     @map("payment_date")
+  paymentStatus PaymentStatus @default(PENDING) @map("payment_status")
+
+  createdAt DateTime @default(now()) @map("created_at")
+  updatedAt DateTime @updatedAt @map("updated_at")
+
+  @@map("payments")
+}
+
+model MedicalRecord {
+  id           String   @id @default(uuid())
+  patient      Patient  @relation(fields: [patientId], references: [id])
+  patientId    String
+  doctor       Doctor   @relation(fields: [doctorId], references: [id])
+  doctorId     String
+  diagnosis    String?
+  notes        String?
+  treatment    Json?
+  prescription Json?
+  visitDate    DateTime @default(now()) @map("visit_date")
+
+  createdAt DateTime @default(now()) @map("created_at")
+  updatedAt DateTime @updatedAt @map("updated_at")
+}
+
+model AuditLog {
+  id          String   @id @default(uuid())
+  action      String
+  details     String?
+  performedBy String   @map("performed_by")
+  createdAt   DateTime @default(now()) @map("created_at")
+
+  @@map("audit_logs")
+}

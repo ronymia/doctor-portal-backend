@@ -1,5 +1,5 @@
 import httpStatus from 'http-status';
-import { Specialization, Prisma } from '@prisma/client';
+import { Specialization, Prisma } from '../../../../generated/prisma';
 import { TSpecializationFilters } from './specialization.interface';
 import { TPaginationOptions } from '../../../interfaces/pagination';
 import { TGenericResponse } from '../../../interfaces/response';

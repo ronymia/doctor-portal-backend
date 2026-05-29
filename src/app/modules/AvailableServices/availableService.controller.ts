@@ -1,5 +1,5 @@
 import { Request, RequestHandler, Response } from 'express';
-import { AvailableService } from '@prisma/client';
+import { AvailableService } from '../../../../generated/prisma';
 import httpStatus from 'http-status';
 import catchAsync from '../../../shared/catchAsync';
 import sendResponse from '../../../shared/sendResponse';
@@ -28,7 +28,7 @@ const createAvailableServiceIntoDB: RequestHandler = catchAsync(
 // GET BY ID  CONTROLLER FUNCTION
 const getAvailableServiceById: RequestHandler = catchAsync(
   async (req: Request, res: Response) => {
-    const { id } = req.params; //COPY
+    const { id } = req.params as any; //COPY
     //SEND DATA TO BUSINESS LOGIC
     const result =
       await AvailableServiceServices.getAvailableServiceByIdFromDB(id);

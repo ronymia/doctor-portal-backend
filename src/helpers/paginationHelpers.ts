@@ -7,16 +7,16 @@ type TOptions = {
 
 type TPaginationResult = {
   page: number;
-  limit: number;
-  skip: number;
+  limit?: number;
+  skip?: number;
   sortBy: string;
   sortOrder: string;
 };
 
 const calculatePagination = (options: TOptions): TPaginationResult => {
   const page = Number(options.page) || 1;
-  const limit = Number(options.limit);
-  const skip = limit ? (page - 1) * limit : 0;
+  const limit = options.limit !== undefined ? Number(options.limit) : undefined;
+  const skip = limit !== undefined ? (page - 1) * limit : undefined;
 
   const sortBy = options.sortBy || 'createdAt';
   const sortOrder = options.sortOrder || 'desc';

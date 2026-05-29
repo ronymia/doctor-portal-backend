@@ -1,19 +1,19 @@
 import httpStatus from 'http-status';
-import { User, Patient, Gender, Doctor, Prisma } from '@prisma/client';
-import AppError from '../../../errors/AppError';
+import { Gender, Prisma, User, UserRole } from '../../../../generated/prisma';
 import { ENUM_USER_ROLE } from '../../../enums/user';
+import AppError from '../../../errors/AppError';
+import { paginationHelpers } from '../../../helpers/paginationHelpers';
+import { TPaginationOptions } from '../../../interfaces/pagination';
+import { TGenericResponse } from '../../../interfaces/response';
+import { logger } from '../../../shared/logger';
 import { prisma } from '../../../shared/prisma';
+import { userSearchableFields } from './user.constant';
 import {
   IAdminCreate,
   IDoctorCreate,
   IPatientCreate,
   TUserFilterRequest,
 } from './user.interface';
-import { logger } from '../../../shared/logger';
-import { TGenericResponse } from '../../../interfaces/response';
-import { paginationHelpers } from '../../../helpers/paginationHelpers';
-import { userSearchableFields } from './user.constant';
-import { TPaginationOptions } from '../../../interfaces/pagination';
 import {
   generateAdminId,
   generateDoctorId,
@@ -34,7 +34,7 @@ const createAdminIntoDB = async (
         email: payload.email,
         phoneNumber: payload.phoneNumber,
         password: payload?.password as string,
-        role: ENUM_USER_ROLE.ADMIN,
+        role: ENUM_USER_ROLE.ADMIN as UserRole,
       },
     });
 
@@ -84,7 +84,7 @@ const createAdminIntoDB = async (
 const createDoctorIntoDB = async (payload: IDoctorCreate): Promise<User> => {
   const { doctor, profile, ...user } = payload;
   // SET ROLE
-  user.role = ENUM_USER_ROLE.DOCTOR;
+  (user as any).role = ENUM_USER_ROLE.DOCTOR as UserRole;
 
   //DEFINE USER
   const result = await prisma.$transaction(async (transactionClient) => {
@@ -138,7 +138,7 @@ const createPatientIntoDB = async (payload: IPatientCreate): Promise<User> => {
   const result = await prisma.$transaction(async (transactionClient) => {
     // CREATE USER
     const newUser = await transactionClient.user.create({
-      data: { ...user, role: ENUM_USER_ROLE.PATIENT } as User,
+      data: { ...user, role: ENUM_USER_ROLE.PATIENT as UserRole } as User,
     });
     if (!newUser) {
       throw new AppError(httpStatus.BAD_REQUEST, 'Failed yo create Patient');
@@ -258,7 +258,7 @@ const getAllUsersFromDB = async (
   const totalCount = await prisma.user.count({
     where: whereCondition,
   });
-  const totalPage = Math.ceil(totalCount / limit);
+  const totalPage = limit ? Math.ceil(totalCount / limit) : 1;
 
   return {
     meta: {
@@ -271,10 +271,228 @@ const getAllUsersFromDB = async (
   };
 };
 
+const approveDoctorInDB = async (userId: string, approverId: string): Promise<User> => {
+  const user = await prisma.user.findUnique({
+    where: { id: userId },
+  });
+
+  if (!user) {
+    throw new AppError(httpStatus.NOT_FOUND, 'User not found');
+  }
+
+  if (user.role !== 'DOCTOR') {
+    throw new AppError(httpStatus.BAD_REQUEST, 'User is not a Doctor');
+  }
+
+  const result = await prisma.$transaction(async (tx) => {
+    const updatedUser = await tx.user.update({
+      where: { id: userId },
+      data: {
+        status: 'ACTIVE',
+        approvedBy: approverId,
+        approvedAt: new Date(),
+      },
+    });
+
+    await tx.auditLog.create({
+      data: {
+        action: 'APPROVE_DOCTOR',
+        details: `Doctor account for ${user.email} approved by User ${approverId}`,
+        performedBy: approverId,
+      },
+    });
+
+    return updatedUser;
+  });
+
+  return result;
+};
+
+const rejectDoctorInDB = async (userId: string, approverId: string): Promise<User> => {
+  const user = await prisma.user.findUnique({
+    where: { id: userId },
+  });
+
+  if (!user) {
+    throw new AppError(httpStatus.NOT_FOUND, 'User not found');
+  }
+
+  const result = await prisma.$transaction(async (tx) => {
+    const updatedUser = await tx.user.update({
+      where: { id: userId },
+      data: {
+        status: 'INACTIVE',
+      },
+    });
+
+    await tx.auditLog.create({
+      data: {
+        action: 'REJECT_DOCTOR',
+        details: `Doctor account for ${user.email} rejected by User ${approverId}`,
+        performedBy: approverId,
+      },
+    });
+
+    return updatedUser;
+  });
+
+  return result;
+};
+
+const suspendUserInDB = async (userId: string, adminId: string): Promise<User> => {
+  const user = await prisma.user.findUnique({
+    where: { id: userId },
+  });
+
+  if (!user) {
+    throw new AppError(httpStatus.NOT_FOUND, 'User not found');
+  }
+
+  const result = await prisma.$transaction(async (tx) => {
+    const updatedUser = await tx.user.update({
+      where: { id: userId },
+      data: {
+        status: 'SUSPENDED',
+      },
+    });
+
+    await tx.auditLog.create({
+      data: {
+        action: 'SUSPEND_USER',
+        details: `User account for ${user.email} suspended by Admin ${adminId}`,
+        performedBy: adminId,
+      },
+    });
+
+    return updatedUser;
+  });
+
+  return result;
+};
+
+const assignPermissionsToUserInDB = async (
+  userId: string,
+  permissionNames: string[],
+  adminId: string,
+): Promise<any> => {
+  const user = await prisma.user.findUnique({
+    where: { id: userId },
+  });
+  if (!user) {
+    throw new AppError(httpStatus.NOT_FOUND, 'User not found');
+  }
+
+  const permissions = await prisma.permission.findMany({
+    where: {
+      name: { in: permissionNames },
+    },
+  });
+
+  if (permissions.length !== permissionNames.length) {
+    throw new AppError(httpStatus.BAD_REQUEST, 'Some permissions do not exist in the database');
+  }
+
+  const result = await prisma.$transaction(async (tx) => {
+    const createdPermissions = [];
+    for (const perm of permissions) {
+      const up = await tx.userPermission.upsert({
+        where: {
+          permissionId_userId: {
+            permissionId: perm.id,
+            userId,
+          },
+        },
+        update: {},
+        create: {
+          permissionId: perm.id,
+          userId,
+        },
+      });
+      createdPermissions.push(up);
+    }
+
+    await tx.auditLog.create({
+      data: {
+        action: 'ASSIGN_PERMISSIONS',
+        details: `Assigned [${permissionNames.join(', ')}] permissions to User ${user.email}`,
+        performedBy: adminId,
+      },
+    });
+
+    return createdPermissions;
+  });
+
+  return result;
+};
+
+const removePermissionsFromUserInDB = async (
+  userId: string,
+  permissionNames: string[],
+  adminId: string,
+): Promise<any> => {
+  const user = await prisma.user.findUnique({
+    where: { id: userId },
+  });
+  if (!user) {
+    throw new AppError(httpStatus.NOT_FOUND, 'User not found');
+  }
+
+  const permissions = await prisma.permission.findMany({
+    where: {
+      name: { in: permissionNames },
+    },
+  });
+
+  const result = await prisma.$transaction(async (tx) => {
+    const deletedCount = await tx.userPermission.deleteMany({
+      where: {
+        userId,
+        permissionId: { in: permissions.map((p) => p.id) },
+      },
+    });
+
+    await tx.auditLog.create({
+      data: {
+        action: 'REMOVE_PERMISSIONS',
+        details: `Removed [${permissionNames.join(', ')}] permissions from User ${user.email}`,
+        performedBy: adminId,
+      },
+    });
+
+    return deletedCount;
+  });
+
+  return result;
+};
+
+const getUserPermissionsFromDB = async (userId: string): Promise<string[]> => {
+  const user = await prisma.user.findUnique({
+    where: { id: userId },
+    include: {
+      userPermissions: {
+        include: {
+          permission: true,
+        },
+      },
+    },
+  });
+  if (!user) {
+    throw new AppError(httpStatus.NOT_FOUND, 'User not found');
+  }
+
+  return user.userPermissions.map((up) => up.permission.name);
+};
+
 // EXPORT
 export const UserServices = {
   createAdminIntoDB,
   createDoctorIntoDB,
   createPatientIntoDB,
   getAllUsersFromDB,
+  approveDoctorInDB,
+  rejectDoctorInDB,
+  suspendUserInDB,
+  assignPermissionsToUserInDB,
+  removePermissionsFromUserInDB,
+  getUserPermissionsFromDB,
 };

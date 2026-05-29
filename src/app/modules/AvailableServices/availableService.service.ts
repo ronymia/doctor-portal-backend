@@ -1,4 +1,4 @@
-import { AvailableService, Prisma } from '@prisma/client';
+import { AvailableService, Prisma } from '../../../../generated/prisma';
 import { TAvailableServiceFilters } from './availableService.interface';
 import { TPaginationOptions } from '../../../interfaces/pagination';
 import { TGenericResponse } from '../../../interfaces/response';

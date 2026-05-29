@@ -1,5 +1,5 @@
 import { Request, RequestHandler, Response } from 'express';
-import { TimeSlot } from '@prisma/client';
+import { TimeSlot } from '../../../../generated/prisma';
 import httpStatus from 'http-status';
 import catchAsync from '../../../shared/catchAsync';
 import { TimeSlotServices } from './timeSlot.service';
@@ -28,7 +28,7 @@ const createTimeSlot: RequestHandler = catchAsync(
 // GET BY ID  CONTROLLER FUNCTION
 const getTimeSlotById: RequestHandler = catchAsync(
   async (req: Request, res: Response) => {
-    const { id } = req.params; //COPY
+    const { id } = req.params as any; //COPY
     //SEND DATA TO BUSINESS LOGIC
     const result = await TimeSlotServices.getTimeSlotByIdFromDB(id);
 
@@ -67,7 +67,7 @@ const getAllTimeSlots: RequestHandler = catchAsync(
 // UPDATE CONTROLLER FUNCTION
 const updateTimeSlot: RequestHandler = catchAsync(
   async (req: Request, res: Response) => {
-    const { id } = req.params; //COPY
+    const { id } = req.params as any; //COPY
     const { ...payloadData } = req.body;
     //SEND DATA TO BUSINESS LOGIC
     const result = await TimeSlotServices.updateTimeSlotIntoDB(id, payloadData);
@@ -85,7 +85,7 @@ const updateTimeSlot: RequestHandler = catchAsync(
 // DELETE CONTROLLER FUNCTION
 const deleteTimeSlot: RequestHandler = catchAsync(
   async (req: Request, res: Response) => {
-    const { id } = req.params; //COPY
+    const { id } = req.params as any; //COPY
     //SEND DATA TO BUSINESS LOGIC
     const result = await TimeSlotServices.deleteTimeSlotFromDB(id);
 

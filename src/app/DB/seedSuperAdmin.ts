@@ -1,8 +1,9 @@
-import { UserAccountStatus } from '@prisma/client';
+import { UserAccountStatus } from '../../../generated/prisma';
 import config from '../../config';
 import { ENUM_USER_ROLE } from '../../enums/user';
 import { PasswordHelpers } from '../../helpers/passwordHelpers';
 import { prisma } from '../../shared/prisma';
+import seedPermissions from './seedPermissions';
 
 async function seedSuperAdmin() {
   //
@@ -29,6 +30,9 @@ async function seedSuperAdmin() {
       data: superAdminData,
     });
   }
+
+  // Call permissions seeder to ensure all system perms are created & associated
+  await seedPermissions();
 }
 
 export default seedSuperAdmin;
