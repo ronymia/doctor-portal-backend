@@ -80,3 +80,4 @@ function bootstrap() {
 }
 // START SERVER
 bootstrap();
+exports.default = app_1.default;
