@@ -76,3 +76,4 @@ async function bootstrap() {
 
 // START SERVER
 bootstrap();
+export default app;
