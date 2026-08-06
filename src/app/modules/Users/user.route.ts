@@ -110,6 +110,13 @@ router.post(
 router.route('/').get(UserControllers.getAllUsers);
 
 router.patch(
+  '/:id/update-doctor',
+  auth(ENUM_USER_ROLE.SUPER_ADMIN, ENUM_USER_ROLE.ADMIN),
+  validateRequest(UserValidationSchemas.updateDoctorZodSchema),
+  UserControllers.updateDoctor,
+);
+
+router.patch(
   '/:id/approve-doctor',
   auth(ENUM_USER_ROLE.SUPER_ADMIN, ENUM_USER_ROLE.ADMIN),
   UserControllers.approveDoctor,
