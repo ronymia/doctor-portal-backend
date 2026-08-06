@@ -185,7 +185,7 @@ const updateDoctorIntoDB = async (
     if (Object.keys(user).length > 0) {
       await transactionClient.user.update({
         where: { id },
-        data: user,
+        data: user as Prisma.UserUpdateInput,
       });
     }
 

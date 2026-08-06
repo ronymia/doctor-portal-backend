@@ -121,9 +121,25 @@ const createPatientZodSchema = zod_1.z.object({
         }),
     }),
 });
+const updateDoctorZodSchema = zod_1.z.object({
+    email: zod_1.z.string().optional(),
+    phoneNumber: zod_1.z.string().optional(),
+    doctor: zod_1.z.object({
+        specializationId: zod_1.z.string().optional(),
+        qualification: zod_1.z.string().optional(),
+    }).optional(),
+    profile: zod_1.z.object({
+        fullName: zod_1.z.string().optional(),
+        gender: zod_1.z.enum(Object.values(prisma_1.Gender)).optional(),
+        address: zod_1.z.string().optional(),
+        dateOfBirth: zod_1.z.string().optional(),
+        profilePicture: zod_1.z.string().optional(),
+    }).optional(),
+});
 // EXPORT VALIDATION SCHEMAS
 exports.UserValidationSchemas = {
     createAdminZodSchema,
     createDoctorZodSchema,
     createPatientZodSchema,
+    updateDoctorZodSchema,
 };
