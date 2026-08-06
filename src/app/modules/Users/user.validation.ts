@@ -123,19 +123,21 @@ const createPatientZodSchema = z.object({
 });
 
 const updateDoctorZodSchema = z.object({
-  email: z.string().optional(),
-  phoneNumber: z.string().optional(),
-  doctor: z.object({
-    specializationId: z.string().optional(),
-    qualification: z.string().optional(),
-  }).optional(),
-  profile: z.object({
-    fullName: z.string().optional(),
-    gender: z.enum(Object.values(Gender) as [string, ...string[]]).optional(),
-    address: z.string().optional(),
-    dateOfBirth: z.string().optional(),
-    profilePicture: z.string().optional(),
-  }).optional(),
+  body: z.object({
+    email: z.string().optional(),
+    phoneNumber: z.string().optional(),
+    doctor: z.object({
+      specializationId: z.string().optional(),
+      qualification: z.string().optional(),
+    }).optional(),
+    profile: z.object({
+      fullName: z.string().optional(),
+      gender: z.enum(Object.values(Gender) as [string, ...string[]]).optional(),
+      address: z.string().optional(),
+      dateOfBirth: z.string().optional(),
+      profilePicture: z.string().optional(),
+    }).optional(),
+  })
 });
 
 // EXPORT VALIDATION SCHEMAS
