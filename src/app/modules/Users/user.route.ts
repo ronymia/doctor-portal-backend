@@ -5,7 +5,6 @@ import { ENUM_USER_ROLE } from '../../../enums/user';
 import validateRequest from '../../middlewares/validateRequest';
 import { UserValidationSchemas } from './user.validation';
 import { FileUploadHelper } from '../../../shared/fileUploadHelper';
-import { z } from 'zod';
 import { IUploadFille } from '../../../interfaces/file';
 
 const router = express.Router();
