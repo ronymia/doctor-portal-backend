@@ -174,6 +174,57 @@ const createPatientIntoDB = async (payload: IPatientCreate): Promise<User> => {
   return result;
 };
 
+// UPDATE DOCTOR IN DATABASE
+const updateDoctorIntoDB = async (
+  id: string,
+  payload: Partial<IDoctorCreate>
+): Promise<User> => {
+  const { doctor, profile, ...user } = payload;
+
+  const result = await prisma.$transaction(async (transactionClient) => {
+    if (Object.keys(user).length > 0) {
+      await transactionClient.user.update({
+        where: { id },
+        data: user,
+      });
+    }
+
+    if (doctor && Object.keys(doctor).length > 0) {
+      await transactionClient.doctor.update({
+        where: { userId: id },
+        data: doctor,
+      });
+    }
+
+    if (profile && Object.keys(profile).length > 0) {
+      await transactionClient.profile.update({
+        where: { userId: id },
+        data: profile,
+      });
+    }
+
+    const updatedUser = await transactionClient.user.findUnique({
+      where: { id },
+      include: {
+        profile: true,
+        doctor: {
+          include: {
+            specialization: true,
+          }
+        },
+      },
+    });
+    
+    if (updatedUser && 'password' in updatedUser) {
+      delete (updatedUser as Partial<User>)?.password;
+    }
+    
+    return updatedUser;
+  });
+
+  return result as User;
+};
+
 // GET ALL USERS FROM DATABASE
 const getAllUsersFromDB = async (
   filters: TUserFilterRequest,
@@ -495,4 +546,5 @@ export const UserServices = {
   assignPermissionsToUserInDB,
   removePermissionsFromUserInDB,
   getUserPermissionsFromDB,
+  updateDoctorIntoDB,
 };

@@ -217,6 +217,20 @@ const getUserPermissions: RequestHandler = catchAsync(
   },
 );
 
+const updateDoctor: RequestHandler = catchAsync(
+  async (req: Request, res: Response) => {
+    const { id } = req.params;
+    const result = await UserServices.updateDoctorIntoDB(id as string, req.body);
+
+    sendResponse(res, {
+      statusCode: httpStatus.OK,
+      success: true,
+      message: 'Doctor updated successfully',
+      data: result,
+    });
+  },
+);
+
 // EXPORT
 export const UserControllers = {
   createAdmin,
@@ -229,4 +243,5 @@ export const UserControllers = {
   assignPermissions,
   removePermissions,
   getUserPermissions,
+  updateDoctor,
 };
