@@ -8,6 +8,7 @@ const express_1 = __importDefault(require("express"));
 const user_controller_1 = require("./user.controller");
 const auth_1 = __importDefault(require("../../middlewares/auth"));
 const user_1 = require("../../../enums/user");
+const validateRequest_1 = __importDefault(require("../../middlewares/validateRequest"));
 const user_validation_1 = require("./user.validation");
 const fileUploadHelper_1 = require("../../../shared/fileUploadHelper");
 const router = express_1.default.Router();
@@ -88,6 +89,7 @@ router.post('/create-patient', (0, auth_1.default)(user_1.ENUM_USER_ROLE.SUPER_A
     return user_controller_1.UserControllers.createPatient(req, res, next);
 });
 router.route('/').get(user_controller_1.UserControllers.getAllUsers);
+router.patch('/:id/update-doctor', (0, auth_1.default)(user_1.ENUM_USER_ROLE.SUPER_ADMIN, user_1.ENUM_USER_ROLE.ADMIN), (0, validateRequest_1.default)(user_validation_1.UserValidationSchemas.updateDoctorZodSchema), user_controller_1.UserControllers.updateDoctor);
 router.patch('/:id/approve-doctor', (0, auth_1.default)(user_1.ENUM_USER_ROLE.SUPER_ADMIN, user_1.ENUM_USER_ROLE.ADMIN), user_controller_1.UserControllers.approveDoctor);
 router.patch('/:id/reject-doctor', (0, auth_1.default)(user_1.ENUM_USER_ROLE.SUPER_ADMIN, user_1.ENUM_USER_ROLE.ADMIN), user_controller_1.UserControllers.rejectDoctor);
 router.patch('/:id/suspend-user', (0, auth_1.default)(user_1.ENUM_USER_ROLE.SUPER_ADMIN), user_controller_1.UserControllers.suspendUser);

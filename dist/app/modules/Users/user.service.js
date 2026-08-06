@@ -158,6 +158,46 @@ const createPatientIntoDB = (payload) => __awaiter(void 0, void 0, void 0, funct
     logger_1.logger.info(result);
     return result;
 });
+// UPDATE DOCTOR IN DATABASE
+const updateDoctorIntoDB = (id, payload) => __awaiter(void 0, void 0, void 0, function* () {
+    const { doctor, profile } = payload, user = __rest(payload, ["doctor", "profile"]);
+    const result = yield prisma_2.prisma.$transaction((transactionClient) => __awaiter(void 0, void 0, void 0, function* () {
+        if (Object.keys(user).length > 0) {
+            yield transactionClient.user.update({
+                where: { id },
+                data: user,
+            });
+        }
+        if (doctor && Object.keys(doctor).length > 0) {
+            yield transactionClient.doctor.update({
+                where: { userId: id },
+                data: doctor,
+            });
+        }
+        if (profile && Object.keys(profile).length > 0) {
+            yield transactionClient.profile.update({
+                where: { userId: id },
+                data: profile,
+            });
+        }
+        const updatedUser = yield transactionClient.user.findUnique({
+            where: { id },
+            include: {
+                profile: true,
+                doctor: {
+                    include: {
+                        specialization: true,
+                    }
+                },
+            },
+        });
+        if (updatedUser && 'password' in updatedUser) {
+            updatedUser === null || updatedUser === void 0 ? true : delete updatedUser.password;
+        }
+        return updatedUser;
+    }));
+    return result;
+});
 // GET ALL USERS FROM DATABASE
 const getAllUsersFromDB = (filters, paginationOptions) => __awaiter(void 0, void 0, void 0, function* () {
     const { page, skip, limit, sortBy, sortOrder } = paginationHelpers_1.paginationHelpers.calculatePagination(paginationOptions);
@@ -423,4 +463,5 @@ exports.UserServices = {
     assignPermissionsToUserInDB,
     removePermissionsFromUserInDB,
     getUserPermissionsFromDB,
+    updateDoctorIntoDB,
 };
