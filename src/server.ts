@@ -6,9 +6,6 @@ import { errorLogger, logger } from './shared/logger';
 import config from './config';
 import { prisma } from './shared/prisma';
 import seedSuperAdmin from './app/DB/seedSuperAdmin';
-import { createRequire } from 'module';
-
-const require = createRequire(import.meta.url);
 
 async function bootstrap() {
   let server: Server;
