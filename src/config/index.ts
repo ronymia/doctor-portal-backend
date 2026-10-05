@@ -28,6 +28,9 @@ const environmentZodSchema = z.object({
   JWT_REFRESH_SECRET: z.string(),
   JWT_EXPIRES_IN: z.string(),
   JWT_REFRESH_EXPIRES_IN: z.string(),
+  CLOUDINARY_CLOUD_NAME: z.string(),
+  CLOUDINARY_API_KEY: z.string(),
+  CLOUDINARY_API_SECRET: z.string(),
 });
 
 const envVariables = environmentZodSchema.parse(process.env);
@@ -45,5 +48,10 @@ export default {
     refresh_secret: envVariables.JWT_REFRESH_SECRET,
     expires_in: envVariables.JWT_EXPIRES_IN,
     refresh_expires_in: envVariables.JWT_REFRESH_EXPIRES_IN,
+  },
+  cloudinary: {
+    cloud_name: envVariables.CLOUDINARY_CLOUD_NAME,
+    api_key: envVariables.CLOUDINARY_API_KEY,
+    api_secret: envVariables.CLOUDINARY_API_SECRET,
   },
 };
